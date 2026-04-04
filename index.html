@@ -337,7 +337,7 @@
     
     <!-- Background Music Audio Element -->
     <audio id="background-music" loop autoplay>
-        <source src="Old%20Town%20Road%20Remix%20English%20Trending%202021%20Downlaod(DjJpSwami.Com).mp3" type="audio/mpeg">
+        <source src="audio/Old%20Town%20Road%20Remix%20English%20Trending%202021%20Downlaod(DjJpSwami.Com).mp3" type="audio/mpeg">
     </audio>
     
 
@@ -369,7 +369,7 @@
         <div class="cta-title">Thanks for taking the drive</div>
         <div class="cta-copy">If you want the quick version, grab the resume or reach out directly from here.</div>
         <div class="cta-actions">
-            <a class="cta-link" href="Resume_Kushagra_Rohatgi (3).pdf" download="Resume_Kushagra_Rohatgi.pdf">Download Resume</a>
+            <a class="cta-link" href="reference/Resume_Kushagra_Rohatgi (3).pdf" download="Resume_Kushagra_Rohatgi.pdf">Download Resume</a>
             <a class="cta-link" href="https://linkedin.com/in/kushagra-rohatgi7" target="_blank" rel="noreferrer">Open LinkedIn</a>
             <a class="cta-link" href="mailto:kushagrarohatgi77@gmail.com">Email Kushagra</a>
         </div>
@@ -523,11 +523,11 @@
 
         // Cinema slideshow images - Your Screenshots!
         const cinemaSlideshow = [
-            "slide_5.png",
-            "slide_1.png",
-            "slide_2.png",
-            "slide_3.png",
-            "slide_4.png"
+            "img/slide_5.png",
+            "img/slide_1.png",
+            "img/slide_2.png",
+            "img/slide_3.png",
+            "img/slide_4.png"
         ];
 
         function createCanvasTexture(width, height, painter) {
@@ -2650,7 +2650,7 @@
         // Download resume
         function downloadResume() {
             const link = document.createElement('a');
-            link.href = 'Resume_Kushagra_Rohatgi (3).pdf';
+            link.href = 'reference/Resume_Kushagra_Rohatgi (3).pdf';
             link.download = 'Resume_Kushagra_Rohatgi.pdf';
             document.body.appendChild(link);
             link.click();
