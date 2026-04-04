@@ -1,0 +1,3196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kushagra's Career Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+        :root {
+            --scene-vignette-mid: rgba(10, 12, 24, 0.14);
+            --scene-vignette-edge: rgba(4, 6, 18, 0.42);
+            --scene-horizon-base: rgba(255, 209, 158, 0.22);
+            --scene-horizon-glow: rgba(255, 189, 125, 0.16);
+            --scene-colorwash-a: rgba(255, 173, 110, 0.2);
+            --scene-colorwash-b: rgba(255, 222, 170, 0.12);
+            --scene-colorwash-c: rgba(122, 215, 255, 0.1);
+            --scene-grain: rgba(255, 255, 255, 0.035);
+        }
+        body { margin: 0; overflow: hidden; font-family: 'Poppins', sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; cursor: pointer; }
+        .modal-backdrop { backdrop-filter: blur(12px); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.5); } 50% { box-shadow: 0 0 40px rgba(255, 107, 107, 0.8); } }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        .pulse { animation: pulse 2s ease-in-out infinite; }
+        .hud-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 24px 60px rgba(13, 17, 38, 0.24);
+        }
+        .touch-btn { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            font-weight: 700;
+        }
+        .touch-btn:active { transform: scale(0.92); background: rgba(255, 255, 255, 1); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+        .click-indicator {
+            position: fixed;
+            top: 15%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.98), rgba(255, 165, 0, 0.98));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-size: 22px;
+            font-weight: 800;
+            pointer-events: none;
+            z-index: 100;
+            animation: pulse 1.5s ease-in-out infinite;
+            box-shadow: 0 15px 50px rgba(255, 107, 107, 0.8), 0 0 30px rgba(255, 165, 0, 0.6);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .restart-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.95), rgba(41, 128, 185, 0.95));
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.3s;
+        }
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 35px rgba(52, 152, 219, 0.7);
+        }
+        .scene-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .scene-vignette {
+            background:
+                radial-gradient(circle at center, rgba(255, 255, 255, 0) 34%, var(--scene-vignette-mid) 76%, var(--scene-vignette-edge) 100%);
+            mix-blend-mode: multiply;
+        }
+        .scene-horizon {
+            background:
+                linear-gradient(to top, var(--scene-horizon-base), rgba(255, 209, 158, 0) 38%),
+                radial-gradient(circle at 50% 80%, var(--scene-horizon-glow), rgba(255, 189, 125, 0) 46%);
+            opacity: 0.95;
+        }
+        .scene-colorwash {
+            background:
+                radial-gradient(circle at 18% 24%, var(--scene-colorwash-a), rgba(255, 173, 110, 0) 28%),
+                radial-gradient(circle at 78% 22%, var(--scene-colorwash-c), rgba(122, 215, 255, 0) 24%),
+                radial-gradient(circle at 50% 82%, var(--scene-colorwash-b), rgba(255, 222, 170, 0) 40%);
+            mix-blend-mode: screen;
+            opacity: 0.88;
+        }
+        .scene-grain {
+            background-image:
+                linear-gradient(115deg, transparent 0%, var(--scene-grain) 48%, transparent 52%),
+                linear-gradient(65deg, transparent 0%, rgba(255,255,255,0.02) 50%, transparent 54%);
+            background-size: 220px 220px, 170px 170px;
+            opacity: 0.35;
+        }
+        .progress-hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            width: min(280px, calc(100vw - 40px));
+            border-radius: 18px;
+            padding: 14px 16px;
+            color: #182033;
+        }
+        .progress-track {
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(24, 32, 51, 0.12);
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #ff8d5f, #ffd066, #7ad7ff);
+            box-shadow: 0 0 18px rgba(255, 157, 103, 0.35);
+            transition: width 0.18s linear;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .progress-subtitle {
+            margin-top: 8px;
+            font-size: 12px;
+            color: rgba(24, 32, 51, 0.72);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .planner-speed-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .shortcut-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .speed-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .speed-option {
+            border: 0;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            color: #2a3144;
+            background: rgba(24, 32, 51, 0.08);
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+        .speed-option:hover {
+            transform: translateY(-1px);
+        }
+        .speed-option.active {
+            color: white;
+            background: linear-gradient(135deg, #ff8e63, #ff6d8e);
+            box-shadow: 0 10px 24px rgba(255, 120, 103, 0.26);
+        }
+        .shortcut-btn {
+            border: 0;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            color: #24314a;
+            background: rgba(36, 49, 74, 0.08);
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .shortcut-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(36, 49, 74, 0.14);
+        }
+        .cta-overlay {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            width: min(560px, calc(100vw - 32px));
+            padding: 18px 20px;
+            border-radius: 22px;
+            z-index: 120;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .cta-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+        .cta-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1f2940;
+        }
+        .cta-copy {
+            margin-top: 6px;
+            font-size: 14px;
+            color: rgba(31, 41, 64, 0.74);
+        }
+        .cta-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .cta-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            padding: 12px 14px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #ff8e63, #ff6d8e);
+            box-shadow: 0 12px 28px rgba(255, 120, 103, 0.24);
+        }
+        .start-hint {
+            position: fixed;
+            left: 50%;
+            bottom: 26px;
+            transform: translateX(-50%);
+            z-index: 90;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #223149;
+            opacity: 1;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .start-hint.hidden {
+            opacity: 0;
+            transform: translateX(-50%) translateY(10px);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-orange-100 to-purple-200">
+    
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-orange-400 via-pink-400 to-purple-500 z-50">
+        <div class="text-center text-white fade-in max-w-4xl px-6">
+            <h1 class="text-6xl md:text-8xl font-bold mb-4">Kushagra Rohatgi</h1>
+            <h2 class="text-2xl md:text-3xl font-semibold mb-3">Product Manager</h2>
+            <p class="text-lg md:text-xl mb-8 opacity-90">Upcoming Product @ Dhan | Ex-Product @ NoBroker, Tap Invest, Resollect</p>
+            <p class="text-xl md:text-2xl mb-8 hidden md:block">Use your arrow keys to start the journey!</p>
+            <p class="text-xl md:text-2xl mb-8 md:hidden">Tap the controls to start the journey!</p>
+            <div class="animate-bounce text-4xl">↓</div>
+        </div>
+    </div>
+
+    <!-- Canvas Container -->
+    <div id="canvas-container"></div>
+    <div class="scene-overlay scene-horizon"></div>
+    <div class="scene-overlay scene-colorwash"></div>
+    <div class="scene-overlay scene-grain"></div>
+    <div class="scene-overlay scene-vignette"></div>
+    
+    <!-- Click Indicator -->
+    <div id="click-indicator" class="click-indicator" style="display: none;">
+        👆 CLICK THE BILLBOARD!
+    </div>
+    
+    <!-- Car Customizer -->
+    <div id="car-customizer" class="hud-panel" style="position: fixed; bottom: 80px; right: 20px; padding: 15px; border-radius: 20px; z-index: 100; font-size: 14px; max-width: 220px;">
+        <div style="font-weight: 700; margin-bottom: 10px; color: #333;">🧭 Plan The Journey</div>
+        <div style="margin-bottom: 10px;">
+            <label style="display: block; margin-bottom: 4px; color: #666; font-size: 12px;">Car Color:</label>
+            <input type="color" id="car-color" value="#cc0000" style="width: 100%; height: 35px; border: none; border-radius: 8px; cursor: pointer;">
+        </div>
+        <div style="margin-bottom: 10px;">
+            <label style="display: block; margin-bottom: 4px; color: #666; font-size: 12px;">Time of Day:</label>
+            <select id="time-of-day" style="width: 100%; padding: 8px; border-radius: 8px; border: 2px solid #ddd; cursor: pointer; font-size: 13px;">
+                <option value="twilight">🌆 Twilight</option>
+                <option value="night" selected>🌙 Night</option>
+            </select>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <label style="display: block; margin-bottom: 6px; color: #666; font-size: 12px;">Speed:</label>
+            <div class="planner-speed-toggle">
+                <button id="speed-normal" class="speed-option active" type="button">Normal</button>
+                <button id="speed-fast" class="speed-option" type="button">Fast (Drive Safe!)</button>
+            </div>
+        </div>
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <label style="color: #666; font-size: 12px;">🎵 Music:</label>
+                <button id="music-toggle" style="background: #4CAF50; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600;">Play</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 11px; color: #999;">🔉</span>
+                <input type="range" id="volume-slider" min="0" max="100" value="50" style="flex: 1; cursor: pointer;">
+                <span style="font-size: 11px; color: #999;">🔊</span>
+            </div>
+            <div style="text-align: center; margin-top: 4px;">
+                <span id="volume-display" style="font-size: 11px; color: #666; font-weight: 600;">50%</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Background Music Audio Element -->
+    <audio id="background-music" loop autoplay>
+        <source src="Old%20Town%20Road%20Remix%20English%20Trending%202021%20Downlaod(DjJpSwami.Com).mp3" type="audio/mpeg">
+    </audio>
+    
+
+    
+    <!-- Restart Button -->
+    <button id="restart-btn" class="restart-btn" style="display: none;">
+        🔄 Start Again
+    </button>
+
+    <div id="start-hint" class="hud-panel start-hint">
+        Use `↑ ↓ ← →` to drive. Click billboards to open sections.
+    </div>
+
+    <div id="progress-hud" class="hud-panel progress-hud">
+        <div class="progress-label">
+            <span id="progress-title">Road Trip Progress</span>
+            <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-track">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <div id="progress-subtitle" class="progress-subtitle">Start the drive</div>
+        <div class="shortcut-row">
+            <button id="jump-cinema" class="shortcut-btn" type="button">Jump To End</button>
+        </div>
+    </div>
+
+    <div id="cinema-cta" class="hud-panel cta-overlay">
+        <div class="cta-title">Thanks for taking the drive</div>
+        <div class="cta-copy">If you want the quick version, grab the resume or reach out directly from here.</div>
+        <div class="cta-actions">
+            <a class="cta-link" href="Resume_Kushagra_Rohatgi (3).pdf" download="Resume_Kushagra_Rohatgi.pdf">Download Resume</a>
+            <a class="cta-link" href="https://linkedin.com/in/kushagra-rohatgi7" target="_blank" rel="noreferrer">Open LinkedIn</a>
+            <a class="cta-link" href="mailto:kushagrarohatgi77@gmail.com">Email Kushagra</a>
+        </div>
+    </div>
+
+    <!-- Mobile Touch Controls -->
+    <div id="mobile-controls" class="fixed bottom-6 left-0 right-0 px-6 flex justify-between md:hidden z-40">
+        <div class="flex gap-3">
+            <button id="btn-left" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold">←</button>
+            <button id="btn-right" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold">→</button>
+        </div>
+        <div class="flex gap-3">
+            <button id="btn-brake" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold">BRAKE</button>
+            <button id="btn-gas" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold">GAS</button>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container" class="fixed inset-0 hidden items-center justify-center z-50 modal-backdrop p-4" onclick="if(event.target === this) closeModal()">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden fade-in flex flex-col" onclick="event.stopPropagation()">
+            <div id="modal-content" class="p-6 md:p-8 overflow-y-auto flex-1"></div>
+            <div class="p-6 md:p-8 pt-4 border-t-2 border-gray-100 flex-shrink-0">
+                <button id="close-modal" class="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white py-4 px-6 rounded-2xl font-bold text-lg hover:shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3">
+                    <span>Continue Driving</span>
+                    <span class="text-2xl">→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // PORTFOLIO DATA - Single Source of Truth
+        // ========================================
+        const portfolioData = {
+            about: {
+                title: "About Me",
+                description: "B.Tech CSE student at VIT Vellore (CGPA: 8.52, graduating 2026) passionate about product management, data analytics, and automation. Hands-on experience at top firms like NoBroker, Resollect, and Tap Invest, with expertise in building automation bots, PRDs, analytics frameworks, and driving strategic product initiatives."
+            },
+            experience: {
+                title: "Experience",
+                items: [
+                    {
+                        role: "Product Intern",
+                        company: "NoBroker (Unicorn PropTech)",
+                        date: "May 2025 - July 2025",
+                        location: "Bangalore, On Site",
+                        details: [
+                            "Worked on more than 10 automation bots",
+                            "Directly increased property leads with bot by 50% from 20% to 30%",
+                            "Increased User responses for visit scheduling bot by 30% from 23% to 30%",
+                            "Owned QA/KPI automation and led all new bot development initiatives",
+                            "Redesigned the 'Notes' feature on the primary property card, creating an improved user journey"
+                        ]
+                    },
+                    {
+                        role: "Product & Founder's Office Intern",
+                        company: "Resollect",
+                        date: "Feb 2025 - March 2025",
+                        location: "Bangalore, Remote",
+                        details: [
+                            "Designed PRDs including newspaper notice automation and legal case management, collaborating with vendors for integration",
+                            "Reported directly to the founder (CA AIR 2, ex-BCG Consultant) on product and growth initiatives"
+                        ]
+                    },
+                    {
+                        role: "Freelance Investment Associate",
+                        company: "CoFoundr",
+                        date: "Jan 2025 - March 2025",
+                        location: "Remote",
+                        details: [
+                            "Connect startups with VCs, driving strategic investments",
+                            "Evaluated startups, conduct market research, and provide insights to VCs"
+                        ]
+                    },
+                    {
+                        role: "Product Management & Analytics Intern",
+                        company: "Tap Invest",
+                        date: "May 2024 - June 2024",
+                        location: "Bangalore, On Site",
+                        details: [
+                            "Revamped dashboards, integrating funnel analysis, user paths, and UTM tracking",
+                            "Authored PRDs to align product strategy and created a 300-event tracking document",
+                            "Acknowledged with a LinkedIn mention from the CEO",
+                            "Built a durable and scalable analytics framework, confirmed by the co-founder to be in use over a year later"
+                        ]
+                    },
+                    {
+                        role: "Founder",
+                        company: "SkillSpot",
+                        date: "Jan 2024 - Mar 2024",
+                        location: "Vellore, TN",
+                        details: [
+                            "Developed a platform connecting students with freelancing opportunities",
+                            "Won Investor's Choice Award at iee-TITE conference, attracting VC interest"
+                        ]
+                    }
+                ]
+            },
+            projects: {
+                title: "My Projects",
+                items: [
+                    {
+                        name: "CaseForge",
+                        description: "Built a case study generator using NLP on B-school docs.",
+                        stack: "Python, OpenAI APIs, MySQL",
+                        link: "#"
+                    },
+                    {
+                        name: "Dreamcatcher",
+                        description: "Visualized dreams using Stable Diffusion and Gemini API.",
+                        stack: "Stable Diffusion, Python",
+                        link: "#"
+                    },
+                    {
+                        name: "Sanatan Dharma App",
+                        description: "Launched an app digitizing spiritual experiences.",
+                        stack: "Figma, Flutter, Firebase",
+                        link: "#"
+                    }
+                ]
+            },
+            skills: {
+                title: "Technical Skills",
+                categories: [
+                    { name: "Data Analytics", items: ["Python", "MySQL", "Tableau", "PowerBI", "R"] },
+                    { name: "Machine Learning", items: ["NLP", "Generative AI", "Embeddings"] },
+                    { name: "Product Analytics", items: ["Mixpanel", "PRDs", "Roadmapping", "Posthog"] },
+                    { name: "UI/UX", items: ["Figma", "UX Research"] },
+                    { name: "Cloud", items: ["AWS", "GCP", "Azure"] }
+                ]
+            },
+            education: {
+                title: "Education",
+                items: [
+                    { school: "VIT, Vellore", degree: "B.Tech in CSE (CGPA: 8.52)", date: "Sep 2022 - Current (2026)", location: "Vellore, TN" },
+                    { school: "Jain International School", degree: "Grade 12 Science: 90.2/100", date: "Feb 2020 - April 2021", location: "Nagpur, MH" },
+                    { school: "Kendriya Vidyalaya", degree: "Grade 10: 93/100", date: "Feb 2019 - March 2020", location: "Bhilai, CG" }
+                ]
+            },
+            contact: {
+                title: "Get In Touch",
+                email: "kushagrarohatgi77@gmail.com",
+                phone: "+91 9561085523",
+                socials: [
+                    { name: "LinkedIn", url: "https://linkedin.com/in/kushagra-rohatgi7" },
+                    { name: "GitHub", url: "https://github.com/kushagra-rohatgi" }
+                ]
+            }
+        };
+
+        // Cinema slideshow images - Your Screenshots!
+        const cinemaSlideshow = [
+            "slide_5.png",
+            "slide_1.png",
+            "slide_2.png",
+            "slide_3.png",
+            "slide_4.png"
+        ];
+
+        function createCanvasTexture(width, height, painter) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            painter(ctx, width, height);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            return texture;
+        }
+
+        function createRoadTexture() {
+            return createCanvasTexture(512, 2048, (ctx, width, height) => {
+                const base = ctx.createLinearGradient(0, 0, width, 0);
+                base.addColorStop(0, '#43404d');
+                base.addColorStop(0.5, '#302d37');
+                base.addColorStop(1, '#474352');
+                ctx.fillStyle = base;
+                ctx.fillRect(0, 0, width, height);
+
+                for (let i = 0; i < 1600; i++) {
+                    const value = 38 + Math.random() * 40;
+                    ctx.fillStyle = `rgba(${value}, ${value}, ${value + 8}, ${0.16 + Math.random() * 0.12})`;
+                    const x = Math.random() * width;
+                    const y = Math.random() * height;
+                    const size = Math.random() * 3 + 1;
+                    ctx.fillRect(x, y, size, size);
+                }
+
+                ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                ctx.fillRect(46, 0, 8, height);
+                ctx.fillRect(width - 54, 0, 8, height);
+
+                for (let y = 0; y < height; y += 180) {
+                    ctx.fillStyle = 'rgba(255, 241, 150, 0.75)';
+                    ctx.fillRect(width / 2 - 8, y + 24, 16, 90);
+                }
+            });
+        }
+
+        function createGroundTexture() {
+            return createCanvasTexture(1024, 1024, (ctx, width, height) => {
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, '#6f7d62');
+                gradient.addColorStop(0.4, '#8d9775');
+                gradient.addColorStop(1, '#59664d');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+
+                const warmPatch = ctx.createRadialGradient(width * 0.68, height * 0.32, 30, width * 0.68, height * 0.32, 360);
+                warmPatch.addColorStop(0, 'rgba(225, 188, 120, 0.12)');
+                warmPatch.addColorStop(1, 'rgba(225, 188, 120, 0)');
+                ctx.fillStyle = warmPatch;
+                ctx.fillRect(0, 0, width, height);
+
+                const coolPatch = ctx.createRadialGradient(width * 0.2, height * 0.76, 20, width * 0.2, height * 0.76, 280);
+                coolPatch.addColorStop(0, 'rgba(126, 160, 142, 0.1)');
+                coolPatch.addColorStop(1, 'rgba(126, 160, 142, 0)');
+                ctx.fillStyle = coolPatch;
+                ctx.fillRect(0, 0, width, height);
+
+                for (let i = 0; i < 2400; i++) {
+                    const hue = 74 + Math.random() * 22;
+                    const lightness = 26 + Math.random() * 18;
+                    ctx.fillStyle = `hsla(${hue}, 22%, ${lightness}%, ${0.08 + Math.random() * 0.1})`;
+                    const x = Math.random() * width;
+                    const y = Math.random() * height;
+                    const size = Math.random() * 18 + 8;
+                    ctx.fillRect(x, y, size, size * (0.3 + Math.random() * 0.6));
+                }
+            });
+        }
+
+        function createShoulderTexture() {
+            return createCanvasTexture(256, 1024, (ctx, width, height) => {
+                const gradient = ctx.createLinearGradient(0, 0, width, 0);
+                gradient.addColorStop(0, '#a58967');
+                gradient.addColorStop(0.5, '#896f55');
+                gradient.addColorStop(1, '#675642');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+
+                for (let y = 0; y < height; y += 96) {
+                    ctx.fillStyle = 'rgba(255, 231, 176, 0.06)';
+                    ctx.fillRect(0, y, width, 24);
+                }
+
+                for (let i = 0; i < 500; i++) {
+                    const shade = 80 + Math.random() * 70;
+                    ctx.fillStyle = `rgba(${shade}, ${shade * 0.85}, ${shade * 0.65}, 0.16)`;
+                    const x = Math.random() * width;
+                    const y = Math.random() * height;
+                    const size = Math.random() * 10 + 2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function createShadowTexture() {
+            const texture = createCanvasTexture(256, 256, (ctx, width, height) => {
+                const gradient = ctx.createRadialGradient(width / 2, height / 2, 10, width / 2, height / 2, width / 2);
+                gradient.addColorStop(0, 'rgba(0,0,0,0.28)');
+                gradient.addColorStop(0.5, 'rgba(0,0,0,0.12)');
+                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+            });
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            return texture;
+        }
+
+        function createFogTexture() {
+            return createCanvasTexture(1024, 256, (ctx, width, height) => {
+                const gradient = ctx.createLinearGradient(0, 0, width, 0);
+                gradient.addColorStop(0, 'rgba(255,255,255,0)');
+                gradient.addColorStop(0.2, 'rgba(255,255,255,0.28)');
+                gradient.addColorStop(0.5, 'rgba(255,255,255,0.52)');
+                gradient.addColorStop(0.8, 'rgba(255,255,255,0.24)');
+                gradient.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+
+                for (let i = 0; i < 16; i++) {
+                    const y = Math.random() * height;
+                    const radius = 50 + Math.random() * 120;
+                    const puff = ctx.createRadialGradient(
+                        Math.random() * width,
+                        y,
+                        4,
+                        Math.random() * width,
+                        y,
+                        radius
+                    );
+                    puff.addColorStop(0, 'rgba(255,255,255,0.18)');
+                    puff.addColorStop(1, 'rgba(255,255,255,0)');
+                    ctx.fillStyle = puff;
+                    ctx.fillRect(0, 0, width, height);
+                }
+            });
+        }
+
+        function createParticleTexture() {
+            return createCanvasTexture(64, 64, (ctx, width, height) => {
+                const gradient = ctx.createRadialGradient(width / 2, height / 2, 2, width / 2, height / 2, width / 2);
+                gradient.addColorStop(0, 'rgba(255,245,220,1)');
+                gradient.addColorStop(0.4, 'rgba(255,220,170,0.7)');
+                gradient.addColorStop(1, 'rgba(255,220,170,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+            });
+        }
+
+        function createLightStreakTexture() {
+            return createCanvasTexture(512, 64, (ctx, width, height) => {
+                const gradient = ctx.createLinearGradient(0, height / 2, width, height / 2);
+                gradient.addColorStop(0, 'rgba(255,255,255,0)');
+                gradient.addColorStop(0.25, 'rgba(255,195,120,0.15)');
+                gradient.addColorStop(0.5, 'rgba(255,230,180,0.75)');
+                gradient.addColorStop(0.75, 'rgba(255,195,120,0.15)');
+                gradient.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+            });
+        }
+
+        // ========================================
+        // THREE.JS SCENE SETUP
+        // ========================================
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0xffa07a, 50, 200);
+        
+        const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 7, 14);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const roadTexture = createRoadTexture();
+        roadTexture.repeat.set(1, 6);
+        const groundTexture = createGroundTexture();
+        groundTexture.repeat.set(10, 10);
+        const shoulderTexture = createShoulderTexture();
+        shoulderTexture.repeat.set(1, 8);
+        const shadowTexture = createShadowTexture();
+        const fogTexture = createFogTexture();
+        const particleTexture = createParticleTexture();
+        const lightStreakTexture = createLightStreakTexture();
+
+        // Night Mode Lighting Setup (Default)
+        scene.background = new THREE.Color(0x000033);
+        scene.fog = new THREE.FogExp2(0x0a0a1a, 0.003);
+
+        // Cool ambient light for night
+        const ambientLight = new THREE.AmbientLight(0x4444aa, 0.3);
+        scene.add(ambientLight);
+
+        // Moonlight for night mode
+        const sunLight = new THREE.DirectionalLight(0x6666cc, 0.5);
+        sunLight.position.set(80, 25, 40);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 500;
+        sunLight.shadow.camera.left = -100;
+        sunLight.shadow.camera.right = 100;
+        sunLight.shadow.camera.top = 100;
+        sunLight.shadow.camera.bottom = -100;
+        sunLight.shadow.bias = -0.0001;
+        scene.add(sunLight);
+
+        // Twilight hemisphere light
+        const hemisphereLight = new THREE.HemisphereLight(0x6a4a8a, 0x2a1a3a, 0.6);
+        scene.add(hemisphereLight);
+
+        // Warm fill light
+        const fillLight = new THREE.DirectionalLight(0xff7744, 0.5);
+        fillLight.position.set(-50, 20, -30);
+        scene.add(fillLight);
+
+        // Purple/pink rim light for twilight
+        const rimLight = new THREE.DirectionalLight(0xaa66cc, 0.4);
+        rimLight.position.set(0, 30, -70);
+        scene.add(rimLight);
+
+        // Realistic twilight sky with gradient (optimized geometry)
+        const skyGeometry = new THREE.SphereGeometry(500, 32, 32);
+        const skyMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                topColor: { value: new THREE.Color(0x000033) },
+                bottomColor: { value: new THREE.Color(0x1a1a3a) },
+                offset: { value: 50 },
+                exponent: { value: 0.4 }
+            },
+            vertexShader: `
+                varying vec3 vWorldPosition;
+                void main() {
+                    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                    vWorldPosition = worldPosition.xyz;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 topColor;
+                uniform vec3 bottomColor;
+                uniform float offset;
+                uniform float exponent;
+                varying vec3 vWorldPosition;
+                void main() {
+                    float h = normalize(vWorldPosition + offset).y;
+                    gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+                }
+            `,
+            side: THREE.BackSide
+        });
+        const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+        scene.add(sky);
+
+        const starGeometry = new THREE.BufferGeometry();
+        const starPositions = [];
+        for (let i = 0; i < 900; i++) {
+            const radius = 320 + Math.random() * 140;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI * 0.42;
+            starPositions.push(
+                Math.cos(theta) * Math.sin(phi) * radius,
+                Math.cos(phi) * radius,
+                Math.sin(theta) * Math.sin(phi) * radius
+            );
+        }
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+        const stars = new THREE.Points(
+            starGeometry,
+            new THREE.PointsMaterial({
+                color: 0xdde8ff,
+                size: 1.4,
+                transparent: true,
+                opacity: 0.8,
+                sizeAttenuation: true
+            })
+        );
+        scene.add(stars);
+
+        const celestialBody = new THREE.Mesh(
+            new THREE.SphereGeometry(6, 24, 24),
+            new THREE.MeshBasicMaterial({ color: 0xf7f0cb, transparent: true, opacity: 0.95 })
+        );
+        celestialBody.position.set(-95, 85, -220);
+        scene.add(celestialBody);
+
+        const celestialGlow = new THREE.Mesh(
+            new THREE.SphereGeometry(11, 24, 24),
+            new THREE.MeshBasicMaterial({ color: 0xfce4ad, transparent: true, opacity: 0.12 })
+        );
+        celestialGlow.position.copy(celestialBody.position);
+        scene.add(celestialGlow);
+
+        function createSilhouetteLayer({ color, y, z, scaleY, opacity, points }) {
+            const shape = new THREE.Shape();
+            points.forEach(([px, py], index) => {
+                if (index === 0) shape.moveTo(px, py);
+                else shape.lineTo(px, py);
+            });
+            shape.lineTo(points[points.length - 1][0], 0);
+            shape.lineTo(points[0][0], 0);
+            shape.closePath();
+
+            const geometry = new THREE.ShapeGeometry(shape);
+            const material = new THREE.MeshBasicMaterial({
+                color,
+                transparent: true,
+                opacity,
+                depthWrite: false
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(0, y, z);
+            mesh.scale.set(1, scaleY, 1);
+            scene.add(mesh);
+            return mesh;
+        }
+
+        const silhouetteLayers = [
+            createSilhouetteLayer({
+                color: 0x5f4950,
+                y: 0,
+                z: -300,
+                scaleY: 0.9,
+                opacity: 0.34,
+                points: [[-180, 0], [-140, 10], [-100, 5], [-60, 16], [-25, 8], [15, 18], [55, 7], [90, 13], [130, 6], [180, 11]]
+            }),
+            createSilhouetteLayer({
+                color: 0x3c3447,
+                y: 1,
+                z: -330,
+                scaleY: 1.15,
+                opacity: 0.24,
+                points: [[-190, 0], [-155, 7], [-112, 19], [-74, 9], [-28, 21], [26, 10], [70, 24], [122, 8], [160, 18], [190, 12]]
+            })
+        ];
+
+        // ========================================
+        // CREATE PHOTOREALISTIC ROAD
+        // ========================================
+        const roadLength = 400;
+        const roadWidth = 12;
+        const roadCenterZ = -roadLength / 2 + 20;
+        
+        // Main road with realistic asphalt texture (optimized geometry)
+        const roadGeometry = new THREE.PlaneGeometry(roadWidth, roadLength, 10, 10);
+        const roadMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff,
+            map: roadTexture,
+            roughness: 0.88,
+            metalness: 0.05,
+            emissive: 0x17131d,
+            emissiveIntensity: 0.16
+        });
+        const road = new THREE.Mesh(roadGeometry, roadMaterial);
+        road.rotation.x = -Math.PI / 2;
+        road.position.z = roadCenterZ;
+        road.receiveShadow = true;
+        scene.add(road);
+
+        const cleanStartZoneMaterial = new THREE.MeshBasicMaterial({
+            color: 0x8e7d92,
+            transparent: true,
+            opacity: 0.96
+        });
+        const cleanStartZone = new THREE.Mesh(
+            new THREE.PlaneGeometry(roadWidth - 0.35, 20),
+            cleanStartZoneMaterial
+        );
+        cleanStartZone.rotation.x = -Math.PI / 2;
+        cleanStartZone.position.set(0, 0.035, 18);
+        scene.add(cleanStartZone);
+
+        // Road edge lines (white with glow for twilight)
+        const edgeLineGeometry = new THREE.PlaneGeometry(0.2, roadLength);
+        const edgeLineMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff,
+            emissive: 0xffffff,
+            emissiveIntensity: 0.5
+        });
+        
+        const leftEdgeLine = new THREE.Mesh(edgeLineGeometry, edgeLineMaterial);
+        leftEdgeLine.rotation.x = -Math.PI / 2;
+        leftEdgeLine.position.set(-roadWidth / 2 + 0.3, 0.02, roadCenterZ);
+        scene.add(leftEdgeLine);
+        
+        const rightEdgeLine = new THREE.Mesh(edgeLineGeometry, edgeLineMaterial);
+        rightEdgeLine.rotation.x = -Math.PI / 2;
+        rightEdgeLine.position.set(roadWidth / 2 - 0.3, 0.02, roadCenterZ);
+        scene.add(rightEdgeLine);
+
+        const shoulderGeometry = new THREE.PlaneGeometry(2.6, roadLength);
+        const shoulderMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            map: shoulderTexture,
+            roughness: 0.98,
+            metalness: 0.02
+        });
+
+        const leftShoulder = new THREE.Mesh(shoulderGeometry, shoulderMaterial);
+        leftShoulder.rotation.x = -Math.PI / 2;
+        leftShoulder.position.set(-roadWidth / 2 - 1.3, 0.01, roadCenterZ);
+        leftShoulder.receiveShadow = true;
+        scene.add(leftShoulder);
+
+        const rightShoulder = new THREE.Mesh(shoulderGeometry, shoulderMaterial);
+        rightShoulder.rotation.x = -Math.PI / 2;
+        rightShoulder.position.set(roadWidth / 2 + 1.3, 0.01, roadCenterZ);
+        rightShoulder.receiveShadow = true;
+        scene.add(rightShoulder);
+
+        // Center dashed lines (yellow with stronger glow)
+        for (let i = 0; i < roadLength / 8; i++) {
+            const lineGeometry = new THREE.PlaneGeometry(0.25, 4);
+            const lineMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xffff00,
+                emissive: 0xffff00,
+                emissiveIntensity: 0.7
+            });
+            const line = new THREE.Mesh(lineGeometry, lineMaterial);
+            line.rotation.x = -Math.PI / 2;
+            line.position.set(0, 0.02, -i * 8 + 5);
+            scene.add(line);
+        }
+
+        // Realistic grass terrain (optimized - fewer vertices)
+        const groundGeometry = new THREE.PlaneGeometry(200, roadLength, 20, 20);
+        const vertices = groundGeometry.attributes.position.array;
+        for (let i = 0; i < vertices.length; i += 3) {
+            vertices[i + 2] = Math.random() * 0.5; // Add height variation
+        }
+        groundGeometry.attributes.position.needsUpdate = true;
+        groundGeometry.computeVertexNormals();
+        
+        const groundMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff,
+            map: groundTexture,
+            roughness: 0.98,
+            metalness: 0,
+            emissive: 0x0a1a06,
+            emissiveIntensity: 0.08
+        });
+        
+        const groundLeft = new THREE.Mesh(groundGeometry, groundMaterial);
+        groundLeft.rotation.x = -Math.PI / 2;
+        groundLeft.position.set(-roadWidth / 2 - 100, -0.2, roadCenterZ);
+        groundLeft.receiveShadow = true;
+        scene.add(groundLeft);
+
+        const groundRight = new THREE.Mesh(groundGeometry.clone(), groundMaterial);
+        groundRight.rotation.x = -Math.PI / 2;
+        groundRight.position.set(roadWidth / 2 + 100, -0.2, roadCenterZ);
+        groundRight.receiveShadow = true;
+        scene.add(groundRight);
+
+        function createReflectorPost(x, z) {
+            const group = new THREE.Group();
+
+            const post = new THREE.Mesh(
+                new THREE.BoxGeometry(0.12, 1.6, 0.12),
+                new THREE.MeshStandardMaterial({ color: 0xd7dbe6, roughness: 0.6, metalness: 0.15 })
+            );
+            post.position.y = 0.8;
+            group.add(post);
+
+            const reflector = new THREE.Mesh(
+                new THREE.BoxGeometry(0.18, 0.32, 0.02),
+                new THREE.MeshBasicMaterial({ color: x < 0 ? 0xff9a5a : 0x8cd2ff })
+            );
+            reflector.position.set(0, 1.05, 0.07);
+            group.add(reflector);
+
+            const postShadow = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.1, 1.1),
+                new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true, depthWrite: false, opacity: 0.22 })
+            );
+            postShadow.rotation.x = -Math.PI / 2;
+            postShadow.position.y = 0.02;
+            group.add(postShadow);
+
+            group.position.set(x, 0, z);
+            return group;
+        }
+
+        for (let i = 0; i < 18; i++) {
+            const z = -i * 20 - 12;
+            scene.add(createReflectorPost(-8.2, z));
+            scene.add(createReflectorPost(8.2, z));
+        }
+
+        const fogBands = [];
+        [
+            { x: -38, y: 6, z: -70, width: 58, opacity: 0.18, speed: 0.0038 },
+            { x: 42, y: 4.5, z: -118, width: 66, opacity: 0.14, speed: 0.0028 },
+            { x: 0, y: 3.8, z: -190, width: 88, opacity: 0.12, speed: 0.002 }
+        ].forEach((band, index) => {
+            const mesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(band.width, 12 + index * 2),
+                new THREE.MeshBasicMaterial({
+                    map: fogTexture,
+                    transparent: true,
+                    depthWrite: false,
+                    opacity: band.opacity,
+                    color: 0xfef1de
+                })
+            );
+            mesh.position.set(band.x, band.y, band.z);
+            mesh.rotation.y = index === 1 ? -0.15 : 0.12;
+            mesh.userData = { baseX: band.x, speed: band.speed, phase: index * 1.6 };
+            scene.add(mesh);
+            fogBands.push(mesh);
+        });
+
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = [];
+        const particlePhases = [];
+        for (let i = 0; i < 48; i++) {
+            particlePositions.push(
+                (Math.random() - 0.5) * 36,
+                1.4 + Math.random() * 8,
+                -25 - Math.random() * 190
+            );
+            particlePhases.push(Math.random() * Math.PI * 2);
+        }
+        particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particlePositions, 3));
+        particleGeometry.setAttribute('phase', new THREE.Float32BufferAttribute(particlePhases, 1));
+        const particles = new THREE.Points(
+            particleGeometry,
+            new THREE.PointsMaterial({
+                map: particleTexture,
+                color: 0xffe3a8,
+                size: 1.6,
+                transparent: true,
+                opacity: 0.75,
+                depthWrite: false,
+                sizeAttenuation: true
+            })
+        );
+        scene.add(particles);
+
+
+        // Trees along the road
+        function createTree(x, z) {
+            const tree = new THREE.Group();
+            
+            // Trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 4, 6);
+            const trunkMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x3a2718,
+                roughness: 0.9
+            });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.y = 2;
+            trunk.castShadow = true;
+            tree.add(trunk);
+            
+            const foliageMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x314a20,
+                roughness: 0.92,
+                emissive: 0x101b0a,
+                emissiveIntensity: 0.14
+            });
+
+            [
+                { size: 2.1, x: 0, y: 5.2, z: 0 },
+                { size: 1.5, x: -0.75, y: 4.7, z: 0.2 },
+                { size: 1.35, x: 0.85, y: 4.9, z: -0.15 },
+                { size: 1.2, x: 0.2, y: 6.2, z: 0.25 }
+            ].forEach(({ size, x: fx, y, z: fz }) => {
+                const foliage = new THREE.Mesh(new THREE.SphereGeometry(size, 8, 8), foliageMaterial);
+                foliage.position.set(fx, y, fz);
+                foliage.castShadow = true;
+                tree.add(foliage);
+            });
+
+            const treeShadow = new THREE.Mesh(
+                new THREE.PlaneGeometry(5.8, 5.8),
+                new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true, depthWrite: false, opacity: 0.26 })
+            );
+            treeShadow.rotation.x = -Math.PI / 2;
+            treeShadow.position.y = 0.03;
+            tree.add(treeShadow);
+            
+            tree.position.set(x, 0, z);
+            return tree;
+        }
+
+        // Clickable social media signs
+        const socialSigns = [];
+        
+        function createSocialSign(type, x, z) {
+            const signGroup = new THREE.Group();
+            
+            // Pole
+            const poleGeometry = new THREE.CylinderGeometry(0.15, 0.15, 4, 8);
+            const poleMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x333333,
+                metalness: 0.6,
+                roughness: 0.4
+            });
+            const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+            pole.position.y = 2;
+            signGroup.add(pole);
+            
+            // Sign board (octagon like stop sign)
+            const signShape = new THREE.Shape();
+            const radius = 1.5;
+            const sides = 8;
+            for (let i = 0; i < sides; i++) {
+                const angle = (i / sides) * Math.PI * 2;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                if (i === 0) signShape.moveTo(x, y);
+                else signShape.lineTo(x, y);
+            }
+            signShape.closePath();
+            
+            const signGeometry = new THREE.ShapeGeometry(signShape);
+            
+            // Different colors and data for different types
+            let signColor, iconText, bgColor, actionData;
+            if (type === 'linkedin') {
+                signColor = 0x0077B5;
+                iconText = 'in';
+                bgColor = '#0077B5';
+                actionData = { type: 'linkedin', url: 'https://www.linkedin.com/in/kushagra-rohatgi7' };
+            } else if (type === 'phone') {
+                signColor = 0x25D366;
+                iconText = '📞';
+                bgColor = '#25D366';
+                actionData = { type: 'phone', number: '+91 9561085523' };
+            } else if (type === 'email') {
+                signColor = 0xEA4335;
+                iconText = '✉';
+                bgColor = '#EA4335';
+                actionData = { type: 'email', address: 'kushagrarohatgi77@gmail.com' };
+            }
+
+            const signMaterial = new THREE.MeshStandardMaterial({ 
+                color: signColor,
+                emissive: signColor,
+                emissiveIntensity: 0.3,
+                metalness: 0.3,
+                roughness: 0.5
+            });
+            const signBoard = new THREE.Mesh(signGeometry, signMaterial);
+            signBoard.position.set(0, 4.5, 0);
+            signBoard.rotation.y = x > 0 ? -Math.PI / 2 : Math.PI / 2;
+            signBoard.userData = { isClickable: true, isSocialSign: true, ...actionData };
+            signGroup.add(signBoard);
+            
+            // Add icon/text using canvas texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, 256, 256);
+            
+            // Icon/Text
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 120px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(iconText, 128, 128);
+            
+            const iconTexture = new THREE.CanvasTexture(canvas);
+            const iconMaterial = new THREE.MeshBasicMaterial({ 
+                map: iconTexture,
+                transparent: true
+            });
+            
+            const iconGeometry = new THREE.CircleGeometry(1.2, 32);
+            const icon = new THREE.Mesh(iconGeometry, iconMaterial);
+            icon.position.set(0, 4.5, x > 0 ? -0.05 : 0.05);
+            icon.rotation.y = x > 0 ? -Math.PI / 2 : Math.PI / 2;
+            icon.userData = { isClickable: true, isSocialSign: true, ...actionData };
+            signGroup.add(icon);
+            
+            signGroup.position.set(x, 0, z);
+            socialSigns.push(signBoard, icon);
+            return signGroup;
+        }
+
+        // Place trees along most of the road
+        for (let i = 0; i < 20; i++) {
+            const z = -i * 15 - 10;
+            
+            // Skip positions 13-15 (near cinema) and positions 3, 7, 11 for social signs
+            if (i === 3) {
+                scene.add(createSocialSign('linkedin', -15, z));
+                scene.add(createTree(15, z));
+            } else if (i === 7) {
+                scene.add(createTree(-15, z));
+                scene.add(createSocialSign('phone', 15, z));
+            } else if (i === 11) {
+                scene.add(createSocialSign('email', -15, z));
+                scene.add(createTree(15, z));
+            } else if (i >= 13 && i <= 15) {
+                // Near cinema - add social signs instead of trees
+                const leftType = i === 13 ? 'linkedin' : i === 14 ? 'phone' : 'email';
+                const rightType = i === 13 ? 'email' : i === 14 ? 'linkedin' : 'phone';
+                scene.add(createSocialSign(leftType, -15, z));
+                scene.add(createSocialSign(rightType, 15, z));
+            } else {
+                // Regular trees
+                scene.add(createTree(-15, z));
+                scene.add(createTree(15, z));
+            }
+        }
+
+        // Starting area with decorative elements
+        const startingPlatformGeometry = new THREE.CylinderGeometry(8, 10, 0.5, 32);
+        const startingPlatformMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x8b4513,
+            roughness: 0.7,
+            metalness: 0.2
+        });
+        const startingPlatform = new THREE.Mesh(startingPlatformGeometry, startingPlatformMaterial);
+        startingPlatform.position.set(0, -0.25, 15);
+        startingPlatform.receiveShadow = true;
+        scene.add(startingPlatform);
+
+        // Starting line
+        const startLineGeometry = new THREE.PlaneGeometry(roadWidth, 1);
+        const startLineMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff,
+            emissive: 0xffffff,
+            emissiveIntensity: 0.5
+        });
+        const startLine = new THREE.Mesh(startLineGeometry, startLineMaterial);
+        startLine.rotation.x = -Math.PI / 2;
+        startLine.position.set(0, 0.03, 8);
+        scene.add(startLine);
+
+        // ========================================
+        // CREATE AAA QUALITY PHOTOREALISTIC CAR
+        // ========================================
+        const car = new THREE.Group();
+        car.userData.collisionRadius = 2.5;
+        const wheelGroups = [];
+        
+        // Ultra-realistic car body with premium materials
+        const bodyGeometry = new THREE.BoxGeometry(2.4, 1.3, 4.5);
+        const bodyMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xcc0000,
+            metalness: 0.95,
+            roughness: 0.15,
+            envMapIntensity: 2,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1,
+            emissive: 0x180404,
+            emissiveIntensity: 0.12
+        });
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.position.y = 0.9;
+        body.castShadow = true;
+        body.receiveShadow = true;
+        car.add(body);
+
+        // Undercarriage
+        const undercarriageGeometry = new THREE.BoxGeometry(2.2, 0.2, 4.3);
+        const undercarriageMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x1a1a1a,
+            metalness: 0.8,
+            roughness: 0.6
+        });
+        const undercarriage = new THREE.Mesh(undercarriageGeometry, undercarriageMaterial);
+        undercarriage.position.y = 0.2;
+        undercarriage.castShadow = true;
+        car.add(undercarriage);
+
+
+        // Aerodynamic hood
+        const hoodGeometry = new THREE.BoxGeometry(2.2, 0.4, 1.5);
+        const hood = new THREE.Mesh(hoodGeometry, bodyMaterial);
+        hood.position.set(0, 1.5, 1.8);
+        hood.rotation.x = -0.15;
+        hood.castShadow = true;
+        car.add(hood);
+
+        // Front bumper
+        const bumperGeometry = new THREE.BoxGeometry(2.3, 0.3, 0.4);
+        const bumperMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x1a1a1a,
+            metalness: 0.7,
+            roughness: 0.3
+        });
+        const frontBumper = new THREE.Mesh(bumperGeometry, bumperMaterial);
+        frontBumper.position.set(0, 0.5, 2.5);
+        frontBumper.castShadow = true;
+        car.add(frontBumper);
+
+        // Rear bumper
+        const rearBumper = new THREE.Mesh(bumperGeometry, bumperMaterial);
+        rearBumper.position.set(0, 0.5, -2.5);
+        rearBumper.castShadow = true;
+        car.add(rearBumper);
+
+        // Realistic windshield with proper glass material
+        const windshieldGeometry = new THREE.BoxGeometry(2, 1, 0.05);
+        const windshieldMaterial = new THREE.MeshPhysicalMaterial({ 
+            color: 0x88ccff,
+            metalness: 0.1,
+            roughness: 0.05,
+            transparent: true,
+            opacity: 0.3,
+            transmission: 0.9,
+            thickness: 0.5,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1
+        });
+        const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
+        windshield.position.set(0, 1.8, 1);
+        windshield.rotation.x = -0.25;
+        car.add(windshield);
+
+        // Premium cabin roof
+        const roofGeometry = new THREE.BoxGeometry(2.1, 1, 2.2);
+        const roofMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xaa0000,
+            metalness: 0.9,
+            roughness: 0.2,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1
+        });
+        const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+        roof.position.set(0, 2, 0.2);
+        roof.castShadow = true;
+        car.add(roof);
+
+        // Side windows with realistic glass
+        const sideWindowGeometry = new THREE.BoxGeometry(0.05, 0.8, 1.8);
+        const leftWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
+        leftWindow.position.set(-1.05, 1.9, 0.2);
+        car.add(leftWindow);
+        const rightWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
+        rightWindow.position.set(1.05, 1.9, 0.2);
+        car.add(rightWindow);
+
+        // Rear window
+        const rearWindowGeometry = new THREE.BoxGeometry(2, 0.8, 0.05);
+        const rearWindow = new THREE.Mesh(rearWindowGeometry, windshieldMaterial);
+        rearWindow.position.set(0, 1.8, -0.9);
+        rearWindow.rotation.x = 0.3;
+        car.add(rearWindow);
+
+        // Side mirrors
+        const mirrorGeometry = new THREE.BoxGeometry(0.15, 0.15, 0.3);
+        const mirrorMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x1a1a1a,
+            metalness: 0.9,
+            roughness: 0.2
+        });
+        const leftMirror = new THREE.Mesh(mirrorGeometry, mirrorMaterial);
+        leftMirror.position.set(-1.3, 1.6, 0.8);
+        leftMirror.castShadow = true;
+        car.add(leftMirror);
+        const rightMirror = new THREE.Mesh(mirrorGeometry, mirrorMaterial);
+        rightMirror.position.set(1.3, 1.6, 0.8);
+        rightMirror.castShadow = true;
+        car.add(rightMirror);
+
+        // Premium LED headlights (optimized)
+        const headlightGeometry = new THREE.CylinderGeometry(0.2, 0.18, 0.15, 8);
+        const headlightMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff,
+            emissive: 0xffffee,
+            emissiveIntensity: 1.5,
+            metalness: 0.9,
+            roughness: 0.1
+        });
+        const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+        leftHeadlight.rotation.x = Math.PI / 2;
+        leftHeadlight.position.set(-0.8, 0.8, 2.4);
+        car.add(leftHeadlight);
+        const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+        rightHeadlight.rotation.x = Math.PI / 2;
+        rightHeadlight.position.set(0.8, 0.8, 2.4);
+        car.add(rightHeadlight);
+
+
+        // Modern LED taillights
+        const taillightGeometry = new THREE.BoxGeometry(0.3, 0.15, 0.1);
+        const taillightMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xff0000,
+            emissive: 0xff0000,
+            emissiveIntensity: 1.2,
+            metalness: 0.8,
+            roughness: 0.2
+        });
+        const leftTaillight = new THREE.Mesh(taillightGeometry, taillightMaterial);
+        leftTaillight.position.set(-0.9, 1, -2.35);
+        car.add(leftTaillight);
+        const rightTaillight = new THREE.Mesh(taillightGeometry, taillightMaterial);
+        rightTaillight.position.set(0.9, 1, -2.35);
+        car.add(rightTaillight);
+
+        // Premium racing wheels with detailed rims
+        const wheelGeometry = new THREE.CylinderGeometry(0.55, 0.55, 0.5, 32);
+        const wheelMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x0a0a0a,
+            metalness: 0.2,
+            roughness: 0.9
+        });
+        
+        const rimGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.52, 32);
+        const rimMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xe0e0e0,
+            metalness: 0.98,
+            roughness: 0.05,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.05
+        });
+        
+        // Brake discs
+        const brakeDiscGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.05, 32);
+        const brakeDiscMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x8b0000,
+            metalness: 0.9,
+            roughness: 0.3,
+            emissive: 0x330000,
+            emissiveIntensity: 0.2
+        });
+        
+        const wheelPositions = [
+            [-1.3, 0.55, 1.8],
+            [1.3, 0.55, 1.8],
+            [-1.3, 0.55, -1.8],
+            [1.3, 0.55, -1.8]
+        ];
+
+        wheelPositions.forEach(pos => {
+            const wheelGroup = new THREE.Group();
+            
+            // Tire
+            const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.castShadow = true;
+            wheel.receiveShadow = true;
+            wheelGroup.add(wheel);
+            
+            // Chrome rim
+            const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+            rim.rotation.z = Math.PI / 2;
+            rim.castShadow = true;
+            wheelGroup.add(rim);
+            
+            // Brake disc
+            const brakeDisc = new THREE.Mesh(brakeDiscGeometry, brakeDiscMaterial);
+            brakeDisc.rotation.z = Math.PI / 2;
+            wheelGroup.add(brakeDisc);
+            
+            // Rim spokes
+            for (let i = 0; i < 5; i++) {
+                const spokeGeometry = new THREE.BoxGeometry(0.05, 0.35, 0.1);
+                const spoke = new THREE.Mesh(spokeGeometry, rimMaterial);
+                spoke.rotation.z = (i / 5) * Math.PI * 2;
+                spoke.position.x = 0.01;
+                wheelGroup.add(spoke);
+            }
+            
+            wheelGroup.position.set(...pos);
+            wheelGroups.push(wheelGroup);
+            car.add(wheelGroup);
+        });
+
+        // Aggressive rear spoiler
+        const spoilerBaseGeometry = new THREE.BoxGeometry(0.3, 0.4, 0.2);
+        const leftSpoilerBase = new THREE.Mesh(spoilerBaseGeometry, bodyMaterial);
+        leftSpoilerBase.position.set(-0.8, 1.8, -2.3);
+        leftSpoilerBase.castShadow = true;
+        car.add(leftSpoilerBase);
+        
+        const rightSpoilerBase = new THREE.Mesh(spoilerBaseGeometry, bodyMaterial);
+        rightSpoilerBase.position.set(0.8, 1.8, -2.3);
+        rightSpoilerBase.castShadow = true;
+        car.add(rightSpoilerBase);
+        
+        const spoilerWingGeometry = new THREE.BoxGeometry(2.2, 0.08, 0.7);
+        const spoilerWing = new THREE.Mesh(spoilerWingGeometry, bodyMaterial);
+        spoilerWing.position.set(0, 2.1, -2.4);
+        spoilerWing.rotation.x = -0.1;
+        spoilerWing.castShadow = true;
+        car.add(spoilerWing);
+
+        // Exhaust pipes
+        const exhaustGeometry = new THREE.CylinderGeometry(0.08, 0.1, 0.4, 16);
+        const exhaustMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x2a2a2a,
+            metalness: 0.95,
+            roughness: 0.2
+        });
+        const leftExhaust = new THREE.Mesh(exhaustGeometry, exhaustMaterial);
+        leftExhaust.rotation.x = Math.PI / 2;
+        leftExhaust.position.set(-0.7, 0.4, -2.5);
+        car.add(leftExhaust);
+        const rightExhaust = new THREE.Mesh(exhaustGeometry, exhaustMaterial);
+        rightExhaust.rotation.x = Math.PI / 2;
+        rightExhaust.position.set(0.7, 0.4, -2.5);
+        car.add(rightExhaust);
+
+        car.position.set(0, 0, 10);
+        scene.add(car);
+
+        // Car customizer functionality
+        const carColorPicker = document.getElementById('car-color');
+        carColorPicker.addEventListener('input', (e) => {
+            const newColor = new THREE.Color(e.target.value);
+            body.material.color = newColor;
+            hood.material.color = newColor;
+            roof.material.color = newColor;
+            spoilerWing.material.color = newColor;
+            leftSpoilerBase.material.color = newColor;
+            rightSpoilerBase.material.color = newColor;
+        });
+
+        // Time of day settings
+        const timeSettings = {
+            twilight: {
+                skyTop: 0x1a0a3a,
+                skyBottom: 0xff9f5c,
+                fogColor: 0x6f5f60,
+                ambientColor: 0xffc08a,
+                sunColor: 0xff9f61,
+                sunIntensity: 1.7,
+                hemiSky: 0xf89b5d,
+                hemiGround: 0x675844,
+                fillColor: 0xffad6b,
+                fillIntensity: 0.75,
+                rimColor: 0xff89d6,
+                rimIntensity: 0.22,
+                roadEmissive: 0x2b1a1a,
+                roadGlow: 0.09,
+                starsOpacity: 0.08,
+                celestialColor: 0xffd495,
+                celestialOpacity: 0.72,
+                celestialGlowOpacity: 0.08,
+                fogDensity: 0.0022,
+                vignetteMid: 'rgba(74, 42, 30, 0.08)',
+                vignetteEdge: 'rgba(44, 20, 28, 0.28)',
+                horizonBase: 'rgba(255, 199, 128, 0.34)',
+                horizonGlow: 'rgba(255, 146, 94, 0.24)',
+                colorwashA: 'rgba(255, 161, 111, 0.26)',
+                colorwashB: 'rgba(255, 227, 166, 0.16)',
+                colorwashC: 'rgba(255, 146, 196, 0.1)',
+                grain: 'rgba(255, 255, 255, 0.028)'
+            },
+            night: {
+                skyTop: 0x000033,
+                skyBottom: 0x1a1a3a,
+                fogColor: 0x0a0a1a,
+                ambientColor: 0x4444aa,
+                sunColor: 0x6666cc,
+                sunIntensity: 0.5,
+                hemiSky: 0x6a4a8a,
+                hemiGround: 0x2a1a3a,
+                fillColor: 0xff7744,
+                fillIntensity: 0.5,
+                rimColor: 0xaa66cc,
+                rimIntensity: 0.4,
+                roadEmissive: 0x17131d,
+                roadGlow: 0.16,
+                starsOpacity: 0.8,
+                celestialColor: 0xf7f0cb,
+                celestialOpacity: 0.95,
+                celestialGlowOpacity: 0.12,
+                fogDensity: 0.003,
+                vignetteMid: 'rgba(11, 18, 34, 0.18)',
+                vignetteEdge: 'rgba(3, 7, 20, 0.48)',
+                horizonBase: 'rgba(77, 127, 190, 0.14)',
+                horizonGlow: 'rgba(92, 211, 255, 0.12)',
+                colorwashA: 'rgba(80, 134, 255, 0.1)',
+                colorwashB: 'rgba(114, 197, 255, 0.08)',
+                colorwashC: 'rgba(92, 239, 220, 0.12)',
+                grain: 'rgba(255, 255, 255, 0.02)'
+            }
+        };
+        
+
+        
+        // Time of day switcher
+        document.getElementById('time-of-day').addEventListener('change', (e) => {
+            const time = e.target.value;
+            const settings = timeSettings[time];
+            currentSceneTheme = time;
+            
+            // Update sky
+            skyMaterial.uniforms.topColor.value.setHex(settings.skyTop);
+            skyMaterial.uniforms.bottomColor.value.setHex(settings.skyBottom);
+            
+            // Update fog
+            scene.fog.color.setHex(settings.fogColor);
+            scene.fog.density = settings.fogDensity;
+            scene.background.setHex(settings.skyTop);
+            
+            // Update lights
+            ambientLight.color.setHex(settings.ambientColor);
+            sunLight.color.setHex(settings.sunColor);
+            sunLight.intensity = settings.sunIntensity;
+            hemisphereLight.color.setHex(settings.hemiSky);
+            hemisphereLight.groundColor.setHex(settings.hemiGround);
+            fillLight.color.setHex(settings.fillColor);
+            fillLight.intensity = settings.fillIntensity;
+            rimLight.color.setHex(settings.rimColor);
+            rimLight.intensity = settings.rimIntensity;
+            road.material.emissive.setHex(settings.roadEmissive);
+            road.material.emissiveIntensity = settings.roadGlow;
+            stars.material.opacity = settings.starsOpacity;
+            celestialBody.material.color.setHex(settings.celestialColor);
+            celestialBody.material.opacity = settings.celestialOpacity;
+            celestialGlow.material.color.setHex(settings.celestialColor);
+            celestialGlow.material.opacity = settings.celestialGlowOpacity;
+            cleanStartZoneMaterial.color.setHex(time === 'night' ? 0x24344f : 0x9f7655);
+            cleanStartZoneMaterial.opacity = time === 'night' ? 0.97 : 0.97;
+            document.documentElement.style.setProperty('--scene-vignette-mid', settings.vignetteMid);
+            document.documentElement.style.setProperty('--scene-vignette-edge', settings.vignetteEdge);
+            document.documentElement.style.setProperty('--scene-horizon-base', settings.horizonBase);
+            document.documentElement.style.setProperty('--scene-horizon-glow', settings.horizonGlow);
+            document.documentElement.style.setProperty('--scene-colorwash-a', settings.colorwashA);
+            document.documentElement.style.setProperty('--scene-colorwash-b', settings.colorwashB);
+            document.documentElement.style.setProperty('--scene-colorwash-c', settings.colorwashC);
+            document.documentElement.style.setProperty('--scene-grain', settings.grain);
+
+            pitStops.forEach((pitStop) => {
+                drawBillboardFace(pitStop.section, pitStop.textMesh.userData.ctx, currentSceneTheme);
+                pitStop.textMesh.userData.texture.needsUpdate = true;
+                drawClickIndicator(pitStop.clickMeIndicator.userData.ctx, currentSceneTheme);
+                pitStop.clickMeIndicator.material.map.needsUpdate = true;
+            });
+        });
+        // Background Music Controls
+        const backgroundMusic = document.getElementById('background-music');
+        const musicToggle = document.getElementById('music-toggle');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeDisplay = document.getElementById('volume-display');
+        const startHint = document.getElementById('start-hint');
+        const cinemaCta = document.getElementById('cinema-cta');
+        let isPlaying = true; // Start as playing
+        let engineAudioContext = null;
+        let engineOscillator = null;
+        let engineGain = null;
+
+        function initEngineAudio() {
+            if (engineAudioContext) return;
+            const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextCtor) return;
+            engineAudioContext = new AudioContextCtor();
+            engineOscillator = engineAudioContext.createOscillator();
+            engineGain = engineAudioContext.createGain();
+            engineOscillator.type = 'sawtooth';
+            engineOscillator.frequency.value = 40;
+            engineGain.gain.value = 0.0001;
+            engineOscillator.connect(engineGain);
+            engineGain.connect(engineAudioContext.destination);
+            engineOscillator.start();
+        }
+
+        function updateEngineAudio(currentVelocity) {
+            if (!engineAudioContext || !engineOscillator || !engineGain) return;
+            const speed = Math.abs(currentVelocity);
+            const targetFrequency = 38 + speed * 190;
+            const targetGain = Math.min(speed * 0.018, 0.028);
+            engineOscillator.frequency.setTargetAtTime(targetFrequency, engineAudioContext.currentTime, 0.08);
+            engineGain.gain.setTargetAtTime(targetGain, engineAudioContext.currentTime, 0.12);
+        }
+
+        function fadeStartHint() {
+            startHint.classList.add('hidden');
+        }
+
+        // Set initial volume to 50%
+        backgroundMusic.volume = 0.5;
+
+        // Try to auto-play immediately
+        backgroundMusic.play().then(() => {
+            musicToggle.textContent = 'Pause';
+            musicToggle.style.background = '#ff6b6b';
+            isPlaying = true;
+        }).catch(err => {
+            console.log('Autoplay blocked, will retry on user interaction');
+            isPlaying = false;
+        });
+
+        // Also try on page load
+        window.addEventListener('load', () => {
+            if (!isPlaying) {
+                backgroundMusic.play().then(() => {
+                    musicToggle.textContent = 'Pause';
+                    musicToggle.style.background = '#ff6b6b';
+                    isPlaying = true;
+                }).catch(err => {
+                    console.log('Autoplay blocked, user must click Play');
+                });
+            }
+        });
+
+        // Also try to play when welcome screen is clicked
+        document.getElementById('welcome-screen').addEventListener('click', () => {
+            initEngineAudio();
+            // Always restart music from beginning when starting
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play().then(() => {
+                musicToggle.textContent = 'Pause';
+                musicToggle.style.background = '#ff6b6b';
+                isPlaying = true;
+            }).catch(err => {
+                console.log('Audio play failed:', err);
+            });
+        });
+
+        // Play/Pause toggle
+        musicToggle.addEventListener('click', () => {
+            if (isPlaying) {
+                backgroundMusic.pause();
+                musicToggle.textContent = 'Play';
+                musicToggle.style.background = '#4CAF50';
+                isPlaying = false;
+            } else {
+                backgroundMusic.play().catch(err => {
+                    console.log('Audio play failed:', err);
+                });
+                musicToggle.textContent = 'Pause';
+                musicToggle.style.background = '#ff6b6b';
+                isPlaying = true;
+            }
+        });
+
+        // Volume control
+        volumeSlider.addEventListener('input', (e) => {
+            const volume = e.target.value / 100;
+            backgroundMusic.volume = volume;
+            volumeDisplay.textContent = e.target.value + '%';
+        });
+
+        // ========================================
+        // CREATE REALISTIC BILLBOARDS & PIT STOPS
+        // ========================================
+        const pitStops = [];
+        const sections = ['about', 'experience', 'projects', 'skills', 'education', 'contact'];
+        const pitStopPositions = [-30, -60, -90, -120, -150, -180];
+        const billboardLights = [];
+        let currentSceneTheme = 'night';
+
+        function getBillboardPalette(theme) {
+            if (theme === 'twilight') {
+                return {
+                    bgStart: '#4f2247',
+                    bgMid: '#c65d4b',
+                    bgEnd: '#ffcb78',
+                    glow: 'rgba(255, 224, 155, 0.34)',
+                    frameOuter: 'rgba(255, 242, 222, 0.98)',
+                    frameInner: 'rgba(255, 226, 183, 0.42)',
+                    badgeBg: 'rgba(98, 24, 44, 0.54)',
+                    badgeText: '#fff4de',
+                    titleStart: '#fff7dc',
+                    titleEnd: '#fffdf6',
+                    titleShadow: 'rgba(88, 28, 24, 0.3)',
+                    lowerBand: 'rgba(79, 24, 26, 0.24)',
+                    clickStart: '#fff3bf',
+                    clickMid: '#ffb84d',
+                    clickEnd: '#ff7a39',
+                    clickText: '#5f2412'
+                };
+            }
+
+            return {
+                bgStart: '#07142d',
+                bgMid: '#183d7a',
+                bgEnd: '#24a6a6',
+                glow: 'rgba(86, 236, 255, 0.28)',
+                frameOuter: 'rgba(231, 247, 255, 0.96)',
+                frameInner: 'rgba(105, 214, 255, 0.38)',
+                badgeBg: 'rgba(5, 24, 56, 0.62)',
+                badgeText: '#dff8ff',
+                titleStart: '#f4feff',
+                titleEnd: '#c8fbff',
+                titleShadow: 'rgba(4, 10, 28, 0.42)',
+                lowerBand: 'rgba(3, 18, 38, 0.28)',
+                clickStart: '#ecff7a',
+                clickMid: '#34f5c5',
+                clickEnd: '#00b8ff',
+                clickText: '#052b4a'
+            };
+        }
+
+        function drawBillboardFace(section, ctx, theme) {
+            const palette = getBillboardPalette(theme);
+
+            const bgGradient = ctx.createLinearGradient(0, 0, 1024, 512);
+            bgGradient.addColorStop(0, palette.bgStart);
+            bgGradient.addColorStop(0.5, palette.bgMid);
+            bgGradient.addColorStop(1, palette.bgEnd);
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, 1024, 512);
+
+            const glow = ctx.createRadialGradient(790, 96, 20, 790, 96, 320);
+            glow.addColorStop(0, palette.glow);
+            glow.addColorStop(0.45, 'rgba(255,255,255,0.07)');
+            glow.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = glow;
+            ctx.fillRect(0, 0, 1024, 512);
+
+            const sheen = ctx.createLinearGradient(120, 40, 900, 430);
+            sheen.addColorStop(0, 'rgba(255,255,255,0.16)');
+            sheen.addColorStop(0.35, 'rgba(255,255,255,0.03)');
+            sheen.addColorStop(0.65, 'rgba(255,255,255,0.1)');
+            sheen.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = sheen;
+            ctx.fillRect(0, 0, 1024, 512);
+
+            ctx.strokeStyle = palette.frameOuter;
+            ctx.lineWidth = 6;
+            ctx.strokeRect(18, 18, 988, 476);
+            ctx.strokeStyle = palette.frameInner;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(38, 38, 948, 436);
+
+            const lowerBand = ctx.createLinearGradient(0, 360, 0, 512);
+            lowerBand.addColorStop(0, 'rgba(15,26,40,0)');
+            lowerBand.addColorStop(1, palette.lowerBand);
+            ctx.fillStyle = lowerBand;
+            ctx.fillRect(0, 320, 1024, 192);
+
+            const badgeWidth = 220;
+            const badgeHeight = 42;
+            const badgeX = 402;
+            const badgeY = 74;
+            ctx.fillStyle = palette.badgeBg;
+            ctx.beginPath();
+            ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 22);
+            ctx.fill();
+            ctx.fillStyle = palette.badgeText;
+            ctx.font = '700 22px Poppins, Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(section.toUpperCase(), 512, badgeY + badgeHeight / 2 + 1);
+
+            const titleGlow = ctx.createLinearGradient(220, 140, 800, 320);
+            titleGlow.addColorStop(0, palette.titleStart);
+            titleGlow.addColorStop(0.5, '#ffffff');
+            titleGlow.addColorStop(1, palette.titleEnd);
+            ctx.fillStyle = titleGlow;
+            ctx.font = '800 90px Poppins, Arial';
+            ctx.shadowColor = palette.titleShadow;
+            ctx.shadowBlur = 26;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 6;
+            ctx.fillText(portfolioData[section].title, 512, 268);
+            ctx.shadowBlur = 0;
+        }
+
+        function drawClickIndicator(clickMeCtx, theme) {
+            const palette = getBillboardPalette(theme);
+            const x = 15, y = 55, width = 482, height = 146, radius = 35;
+            clickMeCtx.clearRect(0, 0, 512, 256);
+            clickMeCtx.beginPath();
+            clickMeCtx.moveTo(x + radius, y);
+            clickMeCtx.lineTo(x + width - radius, y);
+            clickMeCtx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            clickMeCtx.lineTo(x + width, y + height - radius);
+            clickMeCtx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            clickMeCtx.lineTo(x + radius, y + height);
+            clickMeCtx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            clickMeCtx.lineTo(x, y + radius);
+            clickMeCtx.quadraticCurveTo(x, y, x + radius, y);
+            clickMeCtx.closePath();
+
+            const clickGradient = clickMeCtx.createLinearGradient(0, y, 0, y + height);
+            clickGradient.addColorStop(0, palette.clickStart);
+            clickGradient.addColorStop(0.55, palette.clickMid);
+            clickGradient.addColorStop(1, palette.clickEnd);
+            clickMeCtx.fillStyle = clickGradient;
+            clickMeCtx.fill();
+
+            clickMeCtx.shadowColor = 'rgba(255, 236, 195, 0.25)';
+            clickMeCtx.shadowBlur = 16;
+            clickMeCtx.strokeStyle = 'rgba(255,255,255,0.88)';
+            clickMeCtx.lineWidth = 4;
+            clickMeCtx.stroke();
+            clickMeCtx.strokeStyle = 'rgba(92, 85, 71, 0.18)';
+            clickMeCtx.lineWidth = 1.2;
+            clickMeCtx.stroke();
+
+            clickMeCtx.shadowColor = 'transparent';
+            clickMeCtx.lineWidth = 4;
+            clickMeCtx.strokeStyle = 'rgba(255,255,255,0.45)';
+            clickMeCtx.font = '800 58px Poppins, Arial';
+            clickMeCtx.textAlign = 'center';
+            clickMeCtx.textBaseline = 'middle';
+            clickMeCtx.strokeText('Click Me', 256, 128);
+            clickMeCtx.fillStyle = palette.clickText;
+            clickMeCtx.fillText('Click Me', 256, 128);
+
+            clickMeCtx.font = '700 42px Poppins, Arial';
+            clickMeCtx.shadowColor = 'rgba(255, 255, 255, 0.35)';
+            clickMeCtx.shadowBlur = 4;
+            clickMeCtx.fillText('↓', 256, 42);
+            clickMeCtx.shadowBlur = 0;
+        }
+
+        sections.forEach((section, index) => {
+            const pitStopGroup = new THREE.Group();
+            const zPos = pitStopPositions[index];
+            
+            // Sturdy billboard posts (2 posts)
+            const postGeometry = new THREE.CylinderGeometry(0.3, 0.35, 10, 16);
+            const postMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x654321,
+                metalness: 0.2,
+                roughness: 0.8
+            });
+            
+            const leftPost = new THREE.Mesh(postGeometry, postMaterial);
+            leftPost.position.set(7, 5, zPos);
+            leftPost.castShadow = true;
+            pitStopGroup.add(leftPost);
+            
+            const rightPost = new THREE.Mesh(postGeometry, postMaterial);
+            rightPost.position.set(13, 5, zPos);
+            rightPost.castShadow = true;
+            pitStopGroup.add(rightPost);
+
+            // Billboard frame
+            const frameGeometry = new THREE.BoxGeometry(10, 6, 0.4);
+            const frameMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x233042,
+                metalness: 0.74,
+                roughness: 0.26,
+                emissive: 0x0f1824,
+                emissiveIntensity: 0.2
+            });
+            const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+            frame.position.set(10, 8, zPos);
+            frame.castShadow = true;
+            pitStopGroup.add(frame);
+
+            // Billboard sign background (white) - completely static, no lighting
+            const signGeometry = new THREE.BoxGeometry(9.5, 5.5, 0.2);
+            const signMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffff
+            });
+            const sign = new THREE.Mesh(signGeometry, signMaterial);
+            sign.position.set(10, 8, zPos + 0.25);
+            pitStopGroup.add(sign);
+
+            // Billboard text - clean and elegant
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            drawBillboardFace(section, ctx, currentSceneTheme);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const textMaterial = new THREE.MeshBasicMaterial({ 
+                map: texture,
+                transparent: true
+            });
+            const textMesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(9.3, 5.3),
+                textMaterial
+            );
+            textMesh.position.set(10, 8, zPos + 0.36);
+            textMesh.userData = { section, canvas, ctx, texture };
+            pitStopGroup.add(textMesh);
+
+            // Floating "Click Me" indicator above billboard - super catchy!
+            const clickMeCanvas = document.createElement('canvas');
+            clickMeCanvas.width = 512;
+            clickMeCanvas.height = 256;
+            const clickMeCtx = clickMeCanvas.getContext('2d');
+            drawClickIndicator(clickMeCtx, currentSceneTheme);
+            
+            const clickMeTexture = new THREE.CanvasTexture(clickMeCanvas);
+            const clickMeMaterial = new THREE.MeshBasicMaterial({ 
+                map: clickMeTexture,
+                transparent: true,
+                opacity: 1.0
+            });
+            const clickMeIndicator = new THREE.Mesh(
+                new THREE.PlaneGeometry(3.5, 1.75),
+                clickMeMaterial
+            );
+            clickMeIndicator.position.set(10, 11.5, zPos + 0.5);
+            clickMeIndicator.userData = { 
+                isClickIndicator: true, 
+                ctx: clickMeCtx,
+                baseY: 11.5,
+                bounceOffset: index * Math.PI / 3, // Stagger the bounce animation
+                pulseOffset: index * Math.PI / 4 // For pulsing effect
+            };
+            pitStopGroup.add(clickMeIndicator);
+
+            // Spotlight for billboard (starts off, turns on when car approaches)
+            const spotLight = new THREE.SpotLight(0xffffff, 0);
+            spotLight.position.set(10, 14, zPos + 4);
+            spotLight.target.position.set(10, 8, zPos);
+            spotLight.angle = Math.PI / 5;
+            spotLight.penumbra = 0.3;
+            spotLight.decay = 1.5;
+            spotLight.distance = 35;
+            spotLight.castShadow = false;
+            scene.add(spotLight);
+            scene.add(spotLight.target);
+            
+            const glowLight = new THREE.PointLight(0xffc778, 0, 22);
+            glowLight.position.set(10, 8, zPos + 1);
+            scene.add(glowLight);
+            
+            // Store lights for animation
+            billboardLights.push({ light: spotLight, glowLight });
+
+            // Decorative bulbs - completely static with no lighting effects
+            for (let i = 0; i < 8; i++) {
+                const bulbGeometry = new THREE.SphereGeometry(0.18, 8, 8);
+                const bulbMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffff00
+                });
+                const bulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
+                const angle = (i / 8) * Math.PI * 2;
+                const radiusX = 5.2;
+                const radiusY = 3.2;
+                bulb.position.set(
+                    10 + Math.cos(angle) * radiusX,
+                    8 + Math.sin(angle) * radiusY,
+                    zPos + 0.5
+                );
+                pitStopGroup.add(bulb);
+            }
+
+            // Trigger zone (invisible but clickable)
+            const triggerGeometry = new THREE.BoxGeometry(10, 8, 12);
+            const triggerMaterial = new THREE.MeshBasicMaterial({ 
+                visible: false
+            });
+            const trigger = new THREE.Mesh(triggerGeometry, triggerMaterial);
+            trigger.position.set(10, 6, zPos);
+            trigger.userData = { section, isClickable: true };
+            pitStopGroup.add(trigger);
+
+            const accentHalo = new THREE.Mesh(
+                new THREE.PlaneGeometry(11.4, 6.8),
+                new THREE.MeshBasicMaterial({
+                    map: fogTexture,
+                    transparent: true,
+                    opacity: 0.12,
+                    depthWrite: false,
+                    color: 0xffd28b
+                })
+            );
+            accentHalo.position.set(10, 8.2, zPos + 0.18);
+            accentHalo.userData = { isBillboardHalo: true, section };
+            pitStopGroup.add(accentHalo);
+
+            scene.add(pitStopGroup);
+            pitStops.push({ section, trigger, zPos, textMesh, billboardIndex: index, frame, accentHalo, clickMeIndicator });
+        });
+
+        document.getElementById('time-of-day').dispatchEvent(new Event('change'));
+
+        // ========================================
+        // CREATE RESUME DOWNLOAD BILLBOARDS
+        // ========================================
+        function createResumeBillboard(zPos) {
+            const resumeGroup = new THREE.Group();
+            
+            // Single center pole (behind the billboard)
+            const poleGeometry = new THREE.CylinderGeometry(0.25, 0.25, 7, 8);
+            const poleMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x444444,
+                metalness: 0.6,
+                roughness: 0.4
+            });
+            const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+            pole.position.set(-11, 3.5, zPos - 0.5);
+            pole.castShadow = true;
+            resumeGroup.add(pole);
+            
+            // Billboard frame
+            const frameGeometry = new THREE.BoxGeometry(5, 3.5, 0.2);
+            const frameMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x23262d,
+                metalness: 0.5,
+                roughness: 0.45,
+                emissive: 0x121722,
+                emissiveIntensity: 0.18
+            });
+            const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+            frame.position.set(-11, 7.5, zPos - 0.3);
+            frame.castShadow = true;
+            resumeGroup.add(frame);
+            
+            // Resume canvas with clean white background and black text
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 716;
+            const ctx = canvas.getContext('2d');
+            
+            // Clean white background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, 1024, 716);
+            
+            // Colorful accent border
+            const borderGradient = ctx.createLinearGradient(0, 0, 1024, 0);
+            borderGradient.addColorStop(0, '#FF6B6B');
+            borderGradient.addColorStop(0.5, '#FFD93D');
+            borderGradient.addColorStop(1, '#4ECDC4');
+            ctx.strokeStyle = borderGradient;
+            ctx.lineWidth = 20;
+            ctx.strokeRect(10, 10, 1004, 696);
+
+            const paperGlow = ctx.createLinearGradient(0, 0, 0, 716);
+            paperGlow.addColorStop(0, 'rgba(255,255,255,0.9)');
+            paperGlow.addColorStop(1, 'rgba(240,240,240,0.2)');
+            ctx.fillStyle = paperGlow;
+            ctx.fillRect(20, 20, 984, 676);
+            
+            // Document icon - centered black document shape
+            ctx.fillStyle = '#000000';
+            
+            // Draw document icon (centered at 512)
+            ctx.beginPath();
+            ctx.moveTo(412, 120);
+            ctx.lineTo(580, 120);
+            ctx.lineTo(612, 152);
+            ctx.lineTo(612, 320);
+            ctx.lineTo(412, 320);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Folded corner
+            ctx.fillStyle = '#666666';
+            ctx.beginPath();
+            ctx.moveTo(580, 120);
+            ctx.lineTo(612, 152);
+            ctx.lineTo(580, 152);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Document lines (centered)
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(440, 180);
+            ctx.lineTo(580, 180);
+            ctx.moveTo(440, 220);
+            ctx.lineTo(580, 220);
+            ctx.moveTo(440, 260);
+            ctx.lineTo(560, 260);
+            ctx.stroke();
+            
+            // "RESUME" text in bold black (centered)
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold 120px Arial';
+            ctx.fillStyle = '#000000';
+            ctx.fillText('RESUME', 512, 440);
+            
+            // Subtitle in black (centered)
+            ctx.font = 'bold 50px Arial';
+            ctx.fillStyle = '#333333';
+            ctx.fillText('Click to Download', 512, 560);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const textMaterial = new THREE.MeshBasicMaterial({ 
+                map: texture,
+                emissive: 0xffffff,
+                emissiveIntensity: 0.5
+            });
+            
+            const textGeometry = new THREE.PlaneGeometry(4.8, 3.3);
+            const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+            textMesh.position.set(-11, 7.5, zPos + 0.15);
+            textMesh.userData = { isClickable: true, isResume: true };
+            resumeGroup.add(textMesh);
+            
+            return { group: resumeGroup, clickable: textMesh };
+        }
+        
+        // Add resume billboard at start (positioned away from trees)
+        const startResume = createResumeBillboard(-15);
+        scene.add(startResume.group);
+        
+        // Add resume billboard at end (left side, before cinema)
+        const endResume = createResumeBillboard(-200);
+        scene.add(endResume.group);
+        
+        // Store resume clickables
+        const resumeClickables = [startResume.clickable, endResume.clickable];
+
+        // ========================================
+        // CREATE REALISTIC DRIVE-THRU CINEMA
+        // ========================================
+        const cinemaGroup = new THREE.Group();
+        const cinemaZ = -220;
+
+        // Large cinema screen structure
+        const screenStructureGeometry = new THREE.BoxGeometry(30, 18, 1);
+        const screenStructureMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x1a1a1a,
+            metalness: 0.5,
+            roughness: 0.42,
+            emissive: 0x090909,
+            emissiveIntensity: 0.2
+        });
+        const screenStructure = new THREE.Mesh(screenStructureGeometry, screenStructureMaterial);
+        screenStructure.position.set(0, 9, cinemaZ);
+        screenStructure.castShadow = true;
+        cinemaGroup.add(screenStructure);
+
+        // Cinema screen (for slideshow)
+        const screenGeometry = new THREE.PlaneGeometry(28, 16);
+        const screenTexture = new THREE.TextureLoader().load(cinemaSlideshow[0], (texture) => {
+            console.log('Initial slide loaded:', cinemaSlideshow[0]);
+        }, undefined, (error) => {
+            console.error('Error loading initial slide:', cinemaSlideshow[0], error);
+        });
+        const screenMaterial = new THREE.MeshBasicMaterial({ 
+            map: screenTexture,
+            emissive: 0xffffff,
+            emissiveIntensity: 0.3
+        });
+        const screen = new THREE.Mesh(screenGeometry, screenMaterial);
+        screen.position.set(0, 9, cinemaZ + 0.6);
+        screen.userData = { isClickable: true, isCinema: true };
+        cinemaGroup.add(screen);
+
+        // Screen lights
+        const screenLight = new THREE.PointLight(0xffffff, 2, 50);
+        screenLight.position.set(0, 9, cinemaZ + 2);
+        cinemaGroup.add(screenLight);
+
+        const cinemaGroundGlow = new THREE.Mesh(
+            new THREE.PlaneGeometry(38, 22),
+            new THREE.MeshBasicMaterial({
+                map: shadowTexture,
+                transparent: true,
+                depthWrite: false,
+                opacity: 0.16,
+                color: 0xffe0aa
+            })
+        );
+        cinemaGroundGlow.rotation.x = -Math.PI / 2;
+        cinemaGroundGlow.position.set(0, 0.03, cinemaZ + 12);
+        cinemaGroup.add(cinemaGroundGlow);
+
+        // Cinema sign with better readability
+        const signCanvas = document.createElement('canvas');
+        signCanvas.width = 1024;
+        signCanvas.height = 256;
+        const signCtx = signCanvas.getContext('2d');
+        
+        // Dark background for contrast
+        signCtx.fillStyle = '#1a1a1a';
+        signCtx.fillRect(0, 0, 1024, 256);
+        
+        // Border
+        signCtx.strokeStyle = '#ff0000';
+        signCtx.lineWidth = 6;
+        signCtx.strokeRect(3, 3, 1018, 250);
+        
+        signCtx.fillStyle = '#ffffff';
+        signCtx.font = 'bold 70px Poppins, Arial';
+        signCtx.textAlign = 'center';
+        signCtx.textBaseline = 'middle';
+        signCtx.shadowColor = 'rgba(255, 0, 0, 0.8)';
+        signCtx.shadowBlur = 20;
+        signCtx.fillText('🎬 BEHIND THE SCENES 🎬', 512, 100);
+        signCtx.font = 'bold 45px Poppins, Arial';
+        signCtx.fillStyle = '#ffff00';
+        signCtx.shadowColor = 'rgba(255, 255, 0, 0.8)';
+        signCtx.fillText('👆 CLICK TO VIEW DETAILS', 512, 180);
+        
+        const signTexture = new THREE.CanvasTexture(signCanvas);
+        const cinemaSign = new THREE.Mesh(
+            new THREE.PlaneGeometry(20, 4),
+            new THREE.MeshBasicMaterial({ 
+                map: signTexture,
+                transparent: true
+            })
+        );
+        cinemaSign.position.set(0, 19, cinemaZ + 0.6);
+        cinemaGroup.add(cinemaSign);
+
+        // Decorative cinema lights
+        for (let i = 0; i < 20; i++) {
+            const bulbGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+            const bulbMaterial = new THREE.MeshStandardMaterial({
+                color: i % 2 === 0 ? 0xff0000 : 0xffff00,
+                emissive: i % 2 === 0 ? 0xff0000 : 0xffff00,
+                emissiveIntensity: 0.8
+            });
+            const bulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
+            bulb.position.set(-10 + i, 18, cinemaZ + 0.8);
+            cinemaGroup.add(bulb);
+        }
+
+        const shootingStar = new THREE.Mesh(
+            new THREE.PlaneGeometry(9, 0.5),
+            new THREE.MeshBasicMaterial({
+                map: lightStreakTexture,
+                transparent: true,
+                opacity: 0,
+                depthWrite: false,
+                color: 0xfef5dc
+            })
+        );
+        shootingStar.position.set(-60, 42, -140);
+        shootingStar.rotation.z = -0.42;
+        scene.add(shootingStar);
+
+        scene.add(cinemaGroup);
+
+        // ========================================
+        // CREATE PARKED CARS WITH PEOPLE
+        // ========================================
+        function createParkedCar(x, z, color) {
+            const parkedCar = new THREE.Group();
+
+            const parkedShadow = new THREE.Mesh(
+                new THREE.PlaneGeometry(4.2, 6.4),
+                new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true, depthWrite: false, opacity: 0.26 })
+            );
+            parkedShadow.rotation.x = -Math.PI / 2;
+            parkedShadow.position.y = 0.03;
+            parkedCar.add(parkedShadow);
+            
+            // Car body
+            const carBody = new THREE.BoxGeometry(2, 1, 3.5);
+            const carMaterial = new THREE.MeshStandardMaterial({ 
+                color: color,
+                metalness: 0.8,
+                roughness: 0.3
+            });
+            const body = new THREE.Mesh(carBody, carMaterial);
+            body.position.y = 0.7;
+            body.castShadow = true;
+            parkedCar.add(body);
+            
+            // Car roof
+            const roofGeom = new THREE.BoxGeometry(1.8, 0.8, 2);
+            const roof = new THREE.Mesh(roofGeom, carMaterial);
+            roof.position.set(0, 1.5, 0);
+            roof.castShadow = true;
+            parkedCar.add(roof);
+            
+            // Windows
+            const windowMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x87ceeb,
+                transparent: true,
+                opacity: 0.3,
+                metalness: 0.9,
+                roughness: 0.1
+            });
+            const windshield = new THREE.BoxGeometry(1.7, 0.7, 0.1);
+            const frontWindow = new THREE.Mesh(windshield, windowMaterial);
+            frontWindow.position.set(0, 1.5, 1);
+            parkedCar.add(frontWindow);
+            
+            // Wheels
+            const wheelGeom = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+            [[1, 1.3], [-1, 1.3], [1, -1.3], [-1, -1.3]].forEach(([x, z]) => {
+                const wheel = new THREE.Mesh(wheelGeom, wheelMat);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.position.set(x, 0.4, z);
+                wheel.castShadow = true;
+                parkedCar.add(wheel);
+            });
+            
+            // People in car (simple representation)
+            const personGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+            const personMaterial = new THREE.MeshStandardMaterial({ color: 0xffdbac });
+            
+            // Driver
+            const driver = new THREE.Mesh(personGeometry, personMaterial);
+            driver.position.set(-0.5, 1.3, 0.3);
+            parkedCar.add(driver);
+            
+            // Passenger
+            const passenger = new THREE.Mesh(personGeometry, personMaterial);
+            passenger.position.set(0.5, 1.3, 0.3);
+            parkedCar.add(passenger);
+            
+            // Popcorn bucket (simple box)
+            const popcornGeometry = new THREE.CylinderGeometry(0.15, 0.12, 0.25, 16);
+            const popcornMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xff0000,
+                emissive: 0xff0000,
+                emissiveIntensity: 0.2
+            });
+            const popcorn = new THREE.Mesh(popcornGeometry, popcornMaterial);
+            popcorn.position.set(0, 1.0, 0.5);
+            parkedCar.add(popcorn);
+            
+            parkedCar.position.set(x, 0, z);
+            parkedCar.rotation.y = Math.PI;
+            return parkedCar;
+        }
+
+        // Add multiple parked cars watching the cinema with collision data
+        const carColors = [0x3498db, 0x2ecc71, 0xf39c12, 0x9b59b6, 0xe74c3c, 0x1abc9c];
+        const carPositions = [
+            [-8, cinemaZ + 15], [-4, cinemaZ + 15], [0, cinemaZ + 15], [4, cinemaZ + 15], [8, cinemaZ + 15],
+            [-8, cinemaZ + 20], [-4, cinemaZ + 20], [0, cinemaZ + 20], [4, cinemaZ + 20], [8, cinemaZ + 20],
+            [-8, cinemaZ + 25], [-4, cinemaZ + 25], [4, cinemaZ + 25], [8, cinemaZ + 25]
+        ];
+
+        const parkedCars = [];
+        carPositions.forEach((pos, i) => {
+            const parkedCar = createParkedCar(pos[0], pos[1], carColors[i % carColors.length]);
+            parkedCar.userData.isObstacle = true;
+            parkedCar.userData.collisionRadius = 2;
+            scene.add(parkedCar);
+            parkedCars.push(parkedCar);
+        });
+
+        // Cinema barrier (invisible wall to prevent driving through screen)
+        const cinemaBarrier = {
+            x: 0,
+            z: cinemaZ + 5,
+            width: 35,
+            depth: 5
+        };
+
+        // Simple slideshow logic - no fade
+        let currentSlideIndex = 0;
+        const textureLoader = new THREE.TextureLoader();
+        
+        // Function to change slide
+        function changeSlide() {
+            currentSlideIndex = (currentSlideIndex + 1) % cinemaSlideshow.length;
+            console.log('Changing to slide:', currentSlideIndex, cinemaSlideshow[currentSlideIndex]);
+            
+            textureLoader.load(
+                cinemaSlideshow[currentSlideIndex], 
+                (texture) => {
+                    if (screen && screen.material) {
+                        screen.material.map = texture;
+                        screen.material.needsUpdate = true;
+                        console.log('✓ Slide loaded successfully:', cinemaSlideshow[currentSlideIndex]);
+                    }
+                }, 
+                undefined, 
+                (error) => {
+                    console.error('✗ Error loading image:', cinemaSlideshow[currentSlideIndex], error);
+                }
+            );
+        }
+        
+        // Start slideshow
+        setInterval(changeSlide, 3000); // Change slide every 3 seconds
+
+        // ========================================
+        // CAR PHYSICS & CONTROLS
+        // ========================================
+        let velocity = 0;
+        let steering = 0;
+        const maxSpeed = 0.5;
+        const acceleration = 0.015;
+        const braking = 0.025;
+        const damping = 0.96;
+        const steeringSpeed = 0.04;
+        const steeringDamping = 0.88;
+        let driveSpeedMultiplier = 1;
+
+        const keys = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+
+        // Keyboard controls
+        window.addEventListener('keydown', (e) => {
+            // Prevent default arrow key behavior
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
+            
+            if (e.key === 'ArrowUp') keys.up = true;
+            if (e.key === 'ArrowDown') keys.down = true;
+            if (e.key === 'ArrowLeft') keys.left = true;
+            if (e.key === 'ArrowRight') keys.right = true;
+            initEngineAudio();
+            fadeStartHint();
+            
+            // Hide welcome screen on first key press and start music
+            if (document.getElementById('welcome-screen').style.display !== 'none') {
+                document.getElementById('welcome-screen').style.display = 'none';
+                
+                // Start music from beginning
+                if (!isPlaying) {
+                    backgroundMusic.currentTime = 0;
+                    backgroundMusic.play().then(() => {
+                        musicToggle.textContent = 'Pause';
+                        musicToggle.style.background = '#ff6b6b';
+                        isPlaying = true;
+                    }).catch(err => {
+                        console.log('Audio play failed:', err);
+                    });
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp') keys.up = false;
+            if (e.key === 'ArrowDown') keys.down = false;
+            if (e.key === 'ArrowLeft') keys.left = false;
+            if (e.key === 'ArrowRight') keys.right = false;
+        });
+
+        // Mobile touch controls
+        const btnGas = document.getElementById('btn-gas');
+        const btnBrake = document.getElementById('btn-brake');
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+
+        btnGas.addEventListener('touchstart', (e) => { e.preventDefault(); initEngineAudio(); keys.up = true; hideWelcome(); fadeStartHint(); });
+        btnGas.addEventListener('touchend', (e) => { e.preventDefault(); keys.up = false; });
+        btnBrake.addEventListener('touchstart', (e) => { e.preventDefault(); initEngineAudio(); keys.down = true; hideWelcome(); fadeStartHint(); });
+        btnBrake.addEventListener('touchend', (e) => { e.preventDefault(); keys.down = false; });
+        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); initEngineAudio(); keys.left = true; hideWelcome(); fadeStartHint(); });
+        btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); keys.left = false; });
+        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); initEngineAudio(); keys.right = true; hideWelcome(); fadeStartHint(); });
+        btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keys.right = false; });
+
+        function hideWelcome() {
+            if (document.getElementById('welcome-screen').style.display !== 'none') {
+                document.getElementById('welcome-screen').style.display = 'none';
+                
+                // Start music from beginning
+                if (!isPlaying) {
+                    backgroundMusic.currentTime = 0;
+                    backgroundMusic.play().then(() => {
+                        musicToggle.textContent = 'Pause';
+                        musicToggle.style.background = '#ff6b6b';
+                        isPlaying = true;
+                    }).catch(err => {
+                        console.log('Audio play failed:', err);
+                    });
+                }
+            }
+        }
+
+        document.getElementById('jump-cinema').addEventListener('click', () => {
+            car.position.set(0, 0, cinemaZ + 26);
+            velocity = 0;
+            steering = 0;
+            fadeStartHint();
+        });
+
+        // ========================================
+        // CLICK INTERACTION SYSTEM
+        // ========================================
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let hoveredObject = null;
+        let currentActiveBillboard = null;
+
+        renderer.domElement.addEventListener('click', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Check all clickable objects
+            const clickableObjects = [];
+            pitStops.forEach(ps => clickableObjects.push(ps.trigger));
+            clickableObjects.push(screen);
+            socialSigns.forEach(sign => clickableObjects.push(sign));
+            resumeClickables.forEach(resume => clickableObjects.push(resume));
+            
+            const intersects = raycaster.intersectObjects(clickableObjects);
+            
+            if (intersects.length > 0) {
+                const clicked = intersects[0].object;
+                if (clicked.userData.section) {
+                    openModal(clicked.userData.section);
+                } else if (clicked.userData.isCinema) {
+                    openCinemaModal();
+                } else if (clicked.userData.isSocialSign) {
+                    handleSocialSignClick(clicked.userData);
+                } else if (clicked.userData.isResume) {
+                    downloadResume();
+                }
+            }
+        });
+        
+        // Handle social sign clicks
+        function handleSocialSignClick(data) {
+            if (data.type === 'linkedin') {
+                window.open(data.url, '_blank');
+            } else if (data.type === 'phone') {
+                alert(`📞 Call me at:\n\n${data.number}`);
+            } else if (data.type === 'email') {
+                alert(`✉️ Email me at:\n\n${data.address}`);
+            }
+        }
+        
+        // Download resume
+        function downloadResume() {
+            const link = document.createElement('a');
+            link.href = 'Resume_Kushagra_Rohatgi (3).pdf';
+            link.download = 'Resume_Kushagra_Rohatgi.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // ========================================
+        // MODAL SYSTEM
+        // ========================================
+        let isModalOpen = false;
+        let currentPitStop = null;
+        let lastActiveBillboard = null;
+
+        function openModal(section) {
+            isModalOpen = true;
+            document.getElementById('click-indicator').style.display = 'none';
+            const modalContainer = document.getElementById('modal-container');
+            const modalContent = document.getElementById('modal-content');
+            
+            modalContainer.classList.remove('hidden');
+            modalContainer.classList.add('flex');
+            
+            const data = portfolioData[section];
+            let html = `<h2 class="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">${data.title}</h2>`;
+            
+            if (section === 'about') {
+                html += `
+                    <div class="bg-gradient-to-br from-orange-50 to-pink-50 p-6 rounded-2xl border-2 border-orange-200">
+                        <p class="text-lg text-gray-700 leading-relaxed">${data.description}</p>
+                    </div>
+                `;
+            } else if (section === 'experience') {
+                html += `<div class="space-y-4">`;
+                data.items.forEach((item, idx) => {
+                    html += `
+                        <div class="bg-gradient-to-br from-white to-orange-50 p-6 rounded-2xl shadow-lg border-2 border-orange-200 hover:shadow-xl transition-all">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex-1">
+                                    <h3 class="text-2xl font-bold text-gray-800 mb-1">${item.role}</h3>
+                                    <p class="text-lg text-orange-600 font-semibold mb-1">${item.company}</p>
+                                    <p class="text-sm text-gray-500">${item.date} • ${item.location}</p>
+                                </div>
+                                <div class="bg-gradient-to-br from-orange-500 to-pink-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">
+                                    ${idx + 1}
+                                </div>
+                            </div>
+                            <ul class="space-y-2 mt-4">
+                                ${item.details.map(d => `
+                                    <li class="flex items-start text-gray-700">
+                                        <span class="text-orange-500 mr-2 flex-shrink-0">▸</span>
+                                        <span>${d}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            } else if (section === 'projects') {
+                html += `<div class="grid gap-4">`;
+                data.items.forEach(item => {
+                    html += `
+                        <div class="bg-gradient-to-br from-white to-purple-50 p-6 rounded-2xl shadow-lg border-2 border-purple-200 hover:shadow-xl transition-all">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-3">${item.name}</h3>
+                            <p class="text-gray-700 mb-4 leading-relaxed">${item.description}</p>
+                            <div class="bg-gradient-to-r from-orange-100 to-pink-100 px-4 py-2 rounded-lg inline-block">
+                                <span class="text-sm font-semibold text-gray-800">🛠️ ${item.stack}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            } else if (section === 'skills') {
+                html += `<div class="space-y-4">`;
+                data.categories.forEach(cat => {
+                    html += `
+                        <div class="bg-gradient-to-br from-white to-blue-50 p-5 rounded-2xl shadow-lg border-2 border-blue-200">
+                            <h3 class="text-xl font-bold text-gray-800 mb-3 flex items-center">
+                                <span class="bg-gradient-to-r from-orange-500 to-pink-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">✓</span>
+                                ${cat.name}
+                            </h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${cat.items.map(skill => `
+                                    <span class="px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+                                        ${skill}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            } else if (section === 'education') {
+                html += `<div class="space-y-4">`;
+                data.items.forEach((item, idx) => {
+                    html += `
+                        <div class="bg-gradient-to-br from-white to-green-50 p-6 rounded-2xl shadow-lg border-2 border-green-200 hover:shadow-xl transition-all">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h3 class="text-2xl font-bold text-gray-800 mb-2">${item.school}</h3>
+                                    <p class="text-lg text-orange-600 font-semibold mb-1">${item.degree}</p>
+                                    <p class="text-sm text-gray-500">${item.date} • ${item.location}</p>
+                                </div>
+                                <div class="text-4xl flex-shrink-0">🎓</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            } else if (section === 'contact') {
+                html += `
+                    <div class="space-y-4">
+                        <div class="bg-gradient-to-br from-white to-orange-50 p-6 rounded-2xl shadow-lg border-2 border-orange-200">
+                            <div class="flex items-center mb-4">
+                                <span class="text-3xl mr-4">📧</span>
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">Email</p>
+                                    <a href="mailto:${data.email}" class="text-lg text-orange-600 hover:underline font-semibold">${data.email}</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-br from-white to-pink-50 p-6 rounded-2xl shadow-lg border-2 border-pink-200">
+                            <div class="flex items-center mb-4">
+                                <span class="text-3xl mr-4">📱</span>
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">Phone</p>
+                                    <a href="tel:${data.phone}" class="text-lg text-pink-600 hover:underline font-semibold">${data.phone}</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 mt-6">
+                            ${data.socials.map(social => `
+                                <a href="${social.url}" target="_blank" class="flex-1 px-6 py-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-bold text-center hover:shadow-xl transition-all transform hover:scale-105">
+                                    ${social.name} →
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            modalContent.innerHTML = html;
+        }
+
+        function closeModal() {
+            isModalOpen = false;
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.classList.add('hidden');
+            modalContainer.classList.remove('flex');
+            currentPitStop = null;
+        }
+
+        document.getElementById('close-modal').addEventListener('click', closeModal);
+
+        // Restart button functionality
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            car.position.set(0, 0, 10);
+            velocity = 0;
+            steering = 0;
+            camera.position.set(0, 8, 25);
+            currentActiveBillboard = null;
+            document.getElementById('click-indicator').style.display = 'none';
+            document.getElementById('restart-btn').style.display = 'none';
+            cinemaCta.classList.remove('visible');
+            startHint.classList.remove('hidden');
+            
+            // Turn off all billboard lights
+            billboardLights.forEach(bl => {
+                bl.light.intensity = 0;
+                bl.glowLight.intensity = 0;
+            });
+            
+            // Always restart music from beginning
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play().then(() => {
+                musicToggle.textContent = 'Pause';
+                musicToggle.style.background = '#ff6b6b';
+                isPlaying = true;
+            }).catch(err => {
+                console.log('Music play failed:', err);
+            });
+        });
+
+        function openCinemaModal() {
+            isModalOpen = true;
+            document.getElementById('click-indicator').style.display = 'none';
+            const modalContainer = document.getElementById('modal-container');
+            const modalContent = document.getElementById('modal-content');
+            
+            modalContainer.classList.remove('hidden');
+            modalContainer.classList.add('flex');
+            
+            let html = `
+                <h2 class="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500">🎬 Behind The Scenes</h2>
+                <p class="text-lg text-gray-600 mb-6 italic">A visual journey through my career highlights!</p>
+                <div class="space-y-4">
+            `;
+            
+            // Show all experiences in beautiful cards
+            portfolioData.experience.items.forEach((item, idx) => {
+                html += `
+                    <div class="bg-gradient-to-br from-white to-red-50 p-6 rounded-2xl shadow-lg border-2 border-red-200 hover:shadow-xl transition-all">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-1">${item.role}</h3>
+                                <p class="text-lg text-red-600 font-semibold mb-1">${item.company}</p>
+                                <p class="text-sm text-gray-500">${item.date} • ${item.location}</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-red-500 to-yellow-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">
+                                ${idx + 1}
+                            </div>
+                        </div>
+                        <ul class="space-y-2 mt-4">
+                            ${item.details.map(d => `
+                                <li class="flex items-start text-gray-700">
+                                    <span class="text-red-500 mr-2 flex-shrink-0">▸</span>
+                                    <span>${d}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            modalContent.innerHTML = html;
+        }
+
+        // ========================================
+        // ANIMATION LOOP
+        // ========================================
+        let bounceOffset = 0;
+        let lightPulse = 0;
+        const cameraTargetPosition = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
+        const cameraLookTarget = new THREE.Vector3(0, 2, 0);
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercent = document.getElementById('progress-percent');
+        const progressSubtitle = document.getElementById('progress-subtitle');
+        const speedNormalButton = document.getElementById('speed-normal');
+        const speedFastButton = document.getElementById('speed-fast');
+        const progressSections = [
+            { z: 10, label: 'Start the drive' },
+            { z: -15, label: 'Resume stop on the left' },
+            { z: -30, label: 'About Me billboard ahead' },
+            { z: -60, label: 'Experience pit stop' },
+            { z: -90, label: 'Projects section incoming' },
+            { z: -120, label: 'Skills board' },
+            { z: -150, label: 'Education board' },
+            { z: -180, label: 'Contact board' },
+            { z: -220, label: 'Drive-in cinema finale' }
+        ];
+        let shootingStarTimer = 0;
+
+        function setDriveSpeed(mode) {
+            const isFast = mode === 'fast';
+            driveSpeedMultiplier = isFast ? 1.9 : 1;
+            speedNormalButton.classList.toggle('active', !isFast);
+            speedFastButton.classList.toggle('active', isFast);
+        }
+
+        speedNormalButton.addEventListener('click', () => setDriveSpeed('normal'));
+        speedFastButton.addEventListener('click', () => setDriveSpeed('fast'));
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!isModalOpen) {
+                // Apply acceleration/braking with better control
+                if (keys.up) {
+                    velocity = Math.min(velocity + acceleration * driveSpeedMultiplier, maxSpeed * driveSpeedMultiplier);
+                } else if (keys.down) {
+                    velocity = Math.max(velocity - braking * driveSpeedMultiplier, -maxSpeed * 0.4 * driveSpeedMultiplier);
+                } else {
+                    // Natural deceleration
+                    if (Math.abs(velocity) > 0.001) {
+                        velocity *= Math.pow(damping, driveSpeedMultiplier);
+                    } else {
+                        velocity = 0;
+                    }
+                }
+
+                // Apply steering
+                if (keys.left) {
+                    steering = Math.max(steering - steeringSpeed, -0.25);
+                } else if (keys.right) {
+                    steering = Math.min(steering + steeringSpeed, 0.25);
+                } else {
+                    // Natural steering return
+                    if (Math.abs(steering) > 0.001) {
+                        steering *= steeringDamping;
+                    } else {
+                        steering = 0;
+                    }
+                }
+
+                // Store previous position for collision rollback
+                const prevX = car.position.x;
+                const prevZ = car.position.z;
+                
+                // Move car
+                car.position.z -= velocity;
+                car.position.x += steering;
+                
+                // Keep car on road
+                car.position.x = Math.max(-5, Math.min(5, car.position.x));
+                
+                // Collision detection with parked cars
+                let collision = false;
+                parkedCars.forEach(parkedCar => {
+                    const dx = car.position.x - parkedCar.position.x;
+                    const dz = car.position.z - parkedCar.position.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+                    const minDistance = car.userData.collisionRadius + parkedCar.userData.collisionRadius;
+                    
+                    if (distance < minDistance) {
+                        collision = true;
+                    }
+                });
+                
+                // Collision with cinema barrier
+                if (car.position.z < cinemaBarrier.z && 
+                    car.position.z > cinemaBarrier.z - cinemaBarrier.depth &&
+                    Math.abs(car.position.x - cinemaBarrier.x) < cinemaBarrier.width / 2) {
+                    collision = true;
+                }
+                
+                // Rollback if collision detected
+                if (collision) {
+                    car.position.x = prevX;
+                    car.position.z = prevZ;
+                    velocity *= 0.5; // Slow down on collision
+                }
+                
+                // Prevent going backwards past start
+                if (car.position.z > 12) {
+                    car.position.z = 12;
+                    velocity = 0;
+                }
+
+                // Bounce animation
+                bounceOffset += 0.1;
+                lightPulse += 0.045;
+                car.position.y = Math.abs(Math.sin(bounceOffset * Math.max(Math.abs(velocity), 0.03) * 5)) * 0.15;
+                car.rotation.z = THREE.MathUtils.lerp(car.rotation.z, -steering * 0.28, 0.08);
+                car.rotation.x = THREE.MathUtils.lerp(car.rotation.x, velocity * 0.22, 0.08);
+
+                wheelGroups.forEach((wheelGroup, index) => {
+                    wheelGroup.rotation.x -= velocity * 0.6;
+                    if (index < 2) {
+                        wheelGroup.rotation.y = THREE.MathUtils.lerp(wheelGroup.rotation.y, steering * 1.2, 0.14);
+                    }
+                });
+
+                fogBands.forEach((band) => {
+                    band.position.x = band.userData.baseX + Math.sin(lightPulse * 0.8 + band.userData.phase) * 6;
+                    band.material.opacity = THREE.MathUtils.clamp(band.material.opacity + Math.sin(lightPulse + band.userData.phase) * 0.0015, 0.08, 0.22);
+                });
+
+                const particlePositionsAttr = particles.geometry.attributes.position;
+                const particlePhasesAttr = particles.geometry.attributes.phase;
+                for (let i = 0; i < particlePositionsAttr.count; i++) {
+                    const basePhase = particlePhasesAttr.array[i];
+                    particlePositionsAttr.array[i * 3] += Math.sin(lightPulse + basePhase) * 0.006;
+                    particlePositionsAttr.array[i * 3 + 1] += Math.cos(lightPulse * 1.2 + basePhase) * 0.01;
+                    if (particlePositionsAttr.array[i * 3 + 1] > 10) {
+                        particlePositionsAttr.array[i * 3 + 1] = 1.4;
+                    }
+                }
+                particlePositionsAttr.needsUpdate = true;
+
+                // Gentle bounce and pulse animation for "Click Me" indicators
+                scene.traverse((object) => {
+                    if (object.userData.isClickIndicator) {
+                        const bounce = Math.sin(bounceOffset * 2 + object.userData.bounceOffset) * 0.15;
+                        object.position.y = object.userData.baseY + bounce;
+                        
+                        // Subtle pulse effect (scale between 1.0 and 1.1)
+                        const pulse = 1.0 + Math.sin(bounceOffset * 3 + object.userData.pulseOffset) * 0.05;
+                        object.scale.set(pulse, pulse, 1);
+                    }
+                });
+
+                const headlightPulse = 1 + Math.sin(lightPulse * 2.5) * 0.05;
+                const isNight = document.getElementById('time-of-day').value === 'night';
+                leftHeadlight.material.emissiveIntensity = isNight ? 1.2 * headlightPulse : 0.7;
+                rightHeadlight.material.emissiveIntensity = leftHeadlight.material.emissiveIntensity;
+                const brakingNow = keys.down || velocity < -0.02;
+                leftTaillight.material.emissiveIntensity = brakingNow ? 2.2 : 1.2;
+                rightTaillight.material.emissiveIntensity = brakingNow ? 2.2 : 1.2;
+                updateEngineAudio(velocity);
+
+                // Improved camera with better billboard and cinema handling
+                const distanceToCinema = Math.abs(car.position.z - cinemaZ);
+                let cameraDistance = 14;
+                let cameraHeight = 7;
+                let lookAtHeight = 2;
+                
+                // Check if near any billboard
+                let nearBillboardDistance = Infinity;
+                pitStops.forEach(ps => {
+                    const dist = Math.abs(car.position.z - ps.zPos);
+                    if (dist < nearBillboardDistance) nearBillboardDistance = dist;
+                });
+                
+                // Very subtle slowdown when near billboards (just a tad bit)
+                if (nearBillboardDistance < 12) {
+                    const slowdownFactor = Math.max(0, (12 - nearBillboardDistance) / 12);
+                    velocity *= (1 - slowdownFactor * 0.05); // Reduce speed by up to 5% only
+                }
+                
+                // Pull back slightly when near billboards
+                if (nearBillboardDistance < 12) {
+                    const billboardFactor = Math.max(0, (12 - nearBillboardDistance) / 12);
+                    cameraDistance += billboardFactor * 3;
+                    cameraHeight += billboardFactor * 1;
+                }
+                
+                // Pull back more at cinema
+                if (distanceToCinema < 30) {
+                    const pullBackFactor = Math.max(0, (30 - distanceToCinema) / 30);
+                    cameraDistance += pullBackFactor * 8;
+                    cameraHeight += pullBackFactor * 5;
+                    lookAtHeight += pullBackFactor * 4;
+                }
+                
+                cameraTargetPosition.set(
+                    car.position.x * 0.38,
+                    cameraHeight,
+                    car.position.z + cameraDistance
+                );
+                cameraLookTarget.set(car.position.x * 0.55, lookAtHeight, car.position.z - 5.5);
+                camera.position.lerp(cameraTargetPosition, 0.08);
+                camera.lookAt(cameraLookTarget);
+
+                // Billboard lighting and proximity detection
+                let closestBillboard = null;
+                let closestDistance = Infinity;
+                
+                // Find closest billboard
+                for (let index = 0; index < pitStops.length; index++) {
+                    const pitStop = pitStops[index];
+                    const distance = Math.abs(car.position.z - pitStop.zPos);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestBillboard = index;
+                    }
+                }
+                
+                // Update billboard lights based on proximity
+                billboardLights.forEach((bl, index) => {
+                    const pitStop = pitStops[index];
+                    const distance = Math.abs(car.position.z - pitStop.zPos);
+                    
+                    if (distance < 15) {
+                        // Fade in lights as car approaches
+                        const intensity = Math.max(0, 1 - distance / 15);
+                        const pulseFactor = 0.92 + Math.sin(lightPulse * 3 + index) * 0.08;
+                        bl.light.intensity = intensity * 3.2 * pulseFactor;
+                        bl.glowLight.intensity = intensity * 2.4 * pulseFactor;
+                        pitStop.frame.material.emissiveIntensity = 0.2 + intensity * 0.45;
+                        pitStop.accentHalo.material.opacity = 0.1 + intensity * 0.18;
+                        pitStop.clickMeIndicator.material.opacity = 0.88 + intensity * 0.12;
+                    } else {
+                        // Fade out lights
+                        bl.light.intensity = 0;
+                        bl.glowLight.intensity = 0;
+                        pitStop.frame.material.emissiveIntensity = 0.14;
+                        pitStop.accentHalo.material.opacity = 0.08;
+                        pitStop.clickMeIndicator.material.opacity = 0.85;
+                    }
+                });
+                
+                // Update current active billboard for click detection
+                if (closestDistance < 15) {
+                    currentActiveBillboard = closestBillboard;
+                } else {
+                    currentActiveBillboard = null;
+                }
+
+                // Hide the click indicator popup (we have floating indicators now)
+                const clickIndicator = document.getElementById('click-indicator');
+                clickIndicator.style.display = 'none';
+
+                // Check cinema trigger
+                const restartBtn = document.getElementById('restart-btn');
+                if (car.position.z < cinemaZ + 35 && car.position.z > cinemaZ + 8) {
+                    velocity *= 0.96; // Slow down at cinema
+                }
+                
+                // Always show restart button after first movement
+                if (car.position.z < 9) {
+                    restartBtn.style.display = 'block';
+                }
+
+                const totalProgress = THREE.MathUtils.clamp((10 - car.position.z) / (10 - cinemaZ), 0, 1);
+                const finaleProgress = car.position.z <= cinemaZ + 28 ? 1 : totalProgress;
+                const progressValue = Math.round(finaleProgress * 100);
+                progressFill.style.width = `${progressValue}%`;
+                progressPercent.textContent = `${progressValue}%`;
+                let activeProgressLabel = progressSections[0].label;
+                for (let i = 0; i < progressSections.length; i++) {
+                    if (car.position.z <= progressSections[i].z) {
+                        activeProgressLabel = progressSections[i].label;
+                    }
+                }
+                progressSubtitle.textContent = activeProgressLabel;
+                cinemaCta.classList.toggle('visible', car.position.z <= cinemaZ + 24);
+
+                const cinemaPulse = 0.7 + Math.sin(lightPulse * 3.2) * 0.3;
+                cinemaSign.material.opacity = 0.82 + cinemaPulse * 0.18;
+                screenLight.intensity = 1.8 + Math.sin(lightPulse * 1.8) * 0.35;
+
+                shootingStarTimer += 0.0035;
+                const shootingWindow = shootingStarTimer % 1;
+                if (shootingWindow > 0.78 && shootingWindow < 0.92) {
+                    const t = (shootingWindow - 0.78) / 0.14;
+                    shootingStar.material.opacity = 0.45 * (1 - Math.abs(t - 0.5) * 2);
+                    shootingStar.position.x = -60 + t * 78;
+                    shootingStar.position.y = 42 - t * 18;
+                } else {
+                    shootingStar.material.opacity = 0;
+                    shootingStar.position.set(-60, 42, -140);
+                }
+
+                silhouetteLayers.forEach((layer, index) => {
+                    layer.position.x = Math.sin(lightPulse * (0.08 + index * 0.03)) * (1.5 + index);
+                });
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
