@@ -276,6 +276,9 @@
             transform: translateX(-50%) translateY(10px);
             pointer-events: none;
         }
+        body.intro-active .start-hint {
+            bottom: 112px;
+        }
         @keyframes welcomeScan {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(220%); }
@@ -484,7 +487,7 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-b from-orange-100 to-purple-200">
+<body class="bg-gradient-to-b from-orange-100 to-purple-200 intro-active">
     
     <!-- Welcome Screen -->
     <div id="welcome-screen" class="welcome-screen">
@@ -1977,6 +1980,7 @@
             if (!force && !introComplete) return;
             if (welcomeScreen.style.display !== 'none') {
                 welcomeScreen.style.display = 'none';
+                document.body.classList.remove('intro-active');
                 revealDrivingHud();
             }
         }
