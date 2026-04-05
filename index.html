@@ -120,6 +120,12 @@
             padding: 14px 16px;
             color: #182033;
         }
+        .intro-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
         .progress-track {
             height: 10px;
             border-radius: 999px;
@@ -256,7 +262,7 @@
             left: 50%;
             bottom: 26px;
             transform: translateX(-50%);
-            z-index: 90;
+            z-index: 110;
             padding: 10px 16px;
             border-radius: 999px;
             font-size: 13px;
@@ -270,19 +276,241 @@
             transform: translateX(-50%) translateY(10px);
             pointer-events: none;
         }
+        @keyframes welcomeScan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(220%); }
+        }
+        @keyframes welcomeFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        .welcome-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(255, 207, 156, 0.3), transparent 26%),
+                radial-gradient(circle at 84% 16%, rgba(123, 215, 255, 0.22), transparent 22%),
+                radial-gradient(circle at 50% 82%, rgba(255, 116, 176, 0.24), transparent 28%),
+                linear-gradient(135deg, #120f28 0%, #22163d 38%, #3b1950 68%, #10182f 100%);
+            overflow: hidden;
+        }
+        .welcome-screen::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 72px 72px;
+            mask-image: radial-gradient(circle at center, black 52%, transparent 100%);
+            opacity: 0.5;
+        }
+        .welcome-panel {
+            position: relative;
+            width: min(1080px, 100%);
+            border-radius: 32px;
+            padding: 28px;
+            color: #f7f5ff;
+            background: linear-gradient(180deg, rgba(15, 18, 42, 0.9), rgba(16, 22, 40, 0.76));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 28px 90px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(18px);
+        }
+        .welcome-title {
+            margin: 0;
+            font-size: clamp(3rem, 7vw, 6rem);
+            line-height: 0.92;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+        }
+        .welcome-subtitle {
+            margin-top: 14px;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            line-height: 1.55;
+            color: rgba(240, 238, 255, 0.82);
+            max-width: 760px;
+        }
+        .welcome-role {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 18px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(255, 143, 99, 0.18), rgba(119, 214, 255, 0.14));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff3ea;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .welcome-company-line {
+            margin-top: 22px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(240, 240, 252, 0.58);
+        }
+        .welcome-company-list {
+            margin-top: 10px;
+            font-size: clamp(1.1rem, 2.4vw, 1.65rem);
+            line-height: 1.5;
+            color: rgba(248, 247, 255, 0.92);
+            max-width: 780px;
+        }
+        .welcome-company-list strong {
+            color: #ffffff;
+        }
+        @keyframes introCarCruise {
+            0% { transform: translateX(-22%) translateY(0); }
+            100% { transform: translateX(132%) translateY(0); }
+        }
+        @keyframes introLaneShift {
+            0% { background-position: 0 0; }
+            100% { background-position: 120px 0; }
+        }
+        .welcome-drive {
+            margin-top: 26px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            padding: 20px 18px;
+            background:
+                radial-gradient(circle at 18% 20%, rgba(255,255,255,0.08), transparent 24%),
+                linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .welcome-drive-label {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(241, 241, 255, 0.68);
+        }
+        .welcome-drive-track {
+            position: relative;
+            height: 86px;
+            overflow: hidden;
+            border-radius: 18px;
+            background:
+                linear-gradient(180deg, rgba(19, 22, 42, 0.2), rgba(7, 10, 24, 0.38)),
+                linear-gradient(90deg, rgba(255,255,255,0.06) 0 20%, transparent 20% 40%, rgba(255,255,255,0.06) 40% 60%, transparent 60% 80%, rgba(255,255,255,0.06) 80% 100%);
+        }
+        .welcome-drive-track::before {
+            content: "";
+            position: absolute;
+            left: 7%;
+            right: 7%;
+            top: 50%;
+            height: 4px;
+            transform: translateY(-50%);
+            border-radius: 999px;
+            background:
+                repeating-linear-gradient(90deg, rgba(255, 238, 191, 0.95) 0 32px, transparent 32px 64px);
+            animation: introLaneShift 1.8s linear infinite;
+            opacity: 0.9;
+        }
+        .welcome-car {
+            position: relative;
+            width: 92px;
+            height: 44px;
+            margin-top: 20px;
+            animation: introCarCruise 7.8s linear infinite;
+        }
+        .welcome-car-body {
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            bottom: 10px;
+            height: 22px;
+            border-radius: 12px 16px 10px 10px;
+            background: linear-gradient(135deg, #ff9a5f, #ff5f7f);
+            box-shadow: 0 10px 22px rgba(255, 105, 130, 0.26);
+        }
+        .welcome-car-roof {
+            position: absolute;
+            left: 28px;
+            bottom: 24px;
+            width: 34px;
+            height: 14px;
+            border-radius: 12px 12px 6px 6px;
+            background: linear-gradient(135deg, #ffe8d9, #ffd0e0);
+        }
+        .welcome-car-wheel {
+            position: absolute;
+            bottom: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            background: #11162b;
+            border: 3px solid #dbe5ff;
+        }
+        .welcome-car-wheel.left {
+            left: 18px;
+        }
+        .welcome-car-wheel.right {
+            right: 18px;
+        }
+        .welcome-cta {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(255, 152, 94, 0.22), rgba(123, 215, 255, 0.18));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff8ef;
+            font-size: clamp(1rem, 2.2vw, 1.35rem);
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.01em;
+            box-shadow: 0 16px 36px rgba(10, 12, 28, 0.18);
+        }
+        @media (max-width: 900px) {
+            .welcome-panel {
+                padding: 20px;
+                border-radius: 26px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-b from-orange-100 to-purple-200">
     
     <!-- Welcome Screen -->
-    <div id="welcome-screen" class="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-orange-400 via-pink-400 to-purple-500 z-50">
-        <div class="text-center text-white fade-in max-w-4xl px-6">
-            <h1 class="text-6xl md:text-8xl font-bold mb-4">Kushagra Rohatgi</h1>
-            <h2 class="text-2xl md:text-3xl font-semibold mb-3">Product Manager</h2>
-            <p class="text-lg md:text-xl mb-8 opacity-90">Upcoming Product @ Dhan | Ex-Product @ NoBroker, Tap Invest, Resollect</p>
-            <p class="text-xl md:text-2xl mb-8 hidden md:block">Use your arrow keys to start the journey!</p>
-            <p class="text-xl md:text-2xl mb-8 md:hidden">Tap the controls to start the journey!</p>
-            <div class="animate-bounce text-4xl">↓</div>
+    <div id="welcome-screen" class="welcome-screen">
+        <div class="welcome-panel fade-in">
+            <h1 class="welcome-title">Kushagra Rohatgi</h1>
+            <div class="welcome-role">Product Manager</div>
+            <p class="welcome-subtitle">Currently building at <strong>Dhan (Fintech Unicorn)</strong>. Previously worked across <strong>NoBroker (PropTech Unicorn)</strong>, <strong>Tap Invest</strong>, <strong>Resollect</strong>, and <strong>CoFoundr</strong>.</p>
+            <div class="welcome-company-line">Current Company</div>
+            <div class="welcome-company-list"><strong>Dhan (Fintech Unicorn)</strong> • Product Management Intern</div>
+            <div class="welcome-company-line">Experience Across</div>
+            <div class="welcome-company-list">NoBroker (PropTech Unicorn) • Tap Invest • Resollect • CoFoundr</div>
+            <div class="welcome-drive">
+                <div class="welcome-drive-label">
+                    <span>Intro Drive</span>
+                    <span>Press Any Key To Begin</span>
+                </div>
+                <div class="welcome-drive-track">
+                    <div class="welcome-car">
+                        <div class="welcome-car-body"></div>
+                        <div class="welcome-car-roof"></div>
+                        <div class="welcome-car-wheel left"></div>
+                        <div class="welcome-car-wheel right"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="welcome-cta">Press any key to start the drive.</div>
         </div>
     </div>
 
@@ -299,7 +527,7 @@
     </div>
     
     <!-- Car Customizer -->
-    <div id="car-customizer" class="hud-panel" style="position: fixed; bottom: 80px; right: 20px; padding: 15px; border-radius: 20px; z-index: 100; font-size: 14px; max-width: 220px;">
+    <div id="car-customizer" class="hud-panel intro-hidden" style="position: fixed; bottom: 80px; right: 20px; padding: 15px; border-radius: 20px; z-index: 100; font-size: 14px; max-width: 220px;">
         <div style="font-weight: 700; margin-bottom: 10px; color: #333;">🧭 Plan The Journey</div>
         <div style="margin-bottom: 10px;">
             <label style="display: block; margin-bottom: 4px; color: #666; font-size: 12px;">Car Color:</label>
@@ -321,25 +549,23 @@
         </div>
         <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                <label style="color: #666; font-size: 12px;">🎵 Music:</label>
-                <button id="music-toggle" style="background: #4CAF50; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600;">Play</button>
+                <label style="color: #666; font-size: 12px;">Music:</label>
+                <button id="music-toggle" style="background: #ff6b6b; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600;">Pause</button>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 11px; color: #999;">🔉</span>
+                <span style="font-size: 11px; color: #999;">Low</span>
                 <input type="range" id="volume-slider" min="0" max="100" value="50" style="flex: 1; cursor: pointer;">
-                <span style="font-size: 11px; color: #999;">🔊</span>
+                <span style="font-size: 11px; color: #999;">High</span>
             </div>
             <div style="text-align: center; margin-top: 4px;">
                 <span id="volume-display" style="font-size: 11px; color: #666; font-weight: 600;">50%</span>
             </div>
         </div>
     </div>
-    
-    <!-- Background Music Audio Element -->
+
     <audio id="background-music" loop autoplay>
         <source src="audio/Old%20Town%20Road%20Remix%20English%20Trending%202021%20Downlaod(DjJpSwami.Com).mp3" type="audio/mpeg">
     </audio>
-    
 
     
     <!-- Restart Button -->
@@ -351,7 +577,7 @@
         Use `↑ ↓ ← →` to drive. Click billboards to open sections.
     </div>
 
-    <div id="progress-hud" class="hud-panel progress-hud">
+    <div id="progress-hud" class="hud-panel progress-hud intro-hidden">
         <div class="progress-label">
             <span id="progress-title">Road Trip Progress</span>
             <span id="progress-percent">0%</span>
@@ -369,7 +595,7 @@
         <div class="cta-title">Thanks for taking the drive</div>
         <div class="cta-copy">If you want the quick version, grab the resume or reach out directly from here.</div>
         <div class="cta-actions">
-            <a class="cta-link" href="reference/Resume_Kushagra_Rohatgi (3).pdf" download="Resume_Kushagra_Rohatgi.pdf">Download Resume</a>
+            <a class="cta-link" href="reference/Resume_KushagraRohatgi.pdf" download="Resume_KushagraRohatgi.pdf">Download Resume</a>
             <a class="cta-link" href="https://linkedin.com/in/kushagra-rohatgi7" target="_blank" rel="noreferrer">Open LinkedIn</a>
             <a class="cta-link" href="mailto:kushagrarohatgi77@gmail.com">Email Kushagra</a>
         </div>
@@ -407,21 +633,34 @@
         const portfolioData = {
             about: {
                 title: "About Me",
-                description: "B.Tech CSE student at VIT Vellore (CGPA: 8.52, graduating 2026) passionate about product management, data analytics, and automation. Hands-on experience at top firms like NoBroker, Resollect, and Tap Invest, with expertise in building automation bots, PRDs, analytics frameworks, and driving strategic product initiatives."
+                description: "I am a B.Tech CSE student at VIT Vellore with a strong focus on product management, analytics, and automation. Across roles at Dhan, NoBroker, Resollect, CoFoundr, Tap Invest, and SkillSpot, I have worked on product specs, user research, vendor negotiations, KPI tracking, dashboards, and automation systems that moved real business metrics. My technical foundation in Python, SQL, analytics tooling, cloud platforms, and AI helps me operate comfortably across product thinking, execution, and data-backed decision-making."
             },
             experience: {
                 title: "Experience",
                 items: [
                     {
+                        role: "Product Management Intern",
+                        company: "Dhan (Fintech Unicorn)",
+                        date: "Jan 2026 - Present",
+                        location: "Mumbai, On Site",
+                        details: [
+                            "Negotiated a data vendor deal for Economic Calendar, reducing procurement cost by 52% through independent vendor negotiations.",
+                            "Shipped 60+ core financial screener filters to production; owned end-to-end scope, specs, and QA.",
+                            "Migrated the entire company API docs to Docusaurus, enabling multi-language SDKs, sandbox testing, and live endpoint execution; maintain the OpenAPI section and official docs.",
+                            "Authored PRDs for Commodities Dashboard, FnO dashboards (daily/weekly/monthly), Cyclical Trends, Bulk/Block Deals, Basket Order APIs, and Conditional Trigger/P&L Exit APIs.",
+                            "Present DAU, MAU, retention, and funnel metrics directly to the CEO in weekly product standups alongside GPMs and SPMs."
+                        ]
+                    },
+                    {
                         role: "Product Intern",
-                        company: "NoBroker (Unicorn PropTech)",
+                        company: "NoBroker (PropTech Unicorn)",
                         date: "May 2025 - July 2025",
                         location: "Bangalore, On Site",
                         details: [
-                            "Worked on more than 10 automation bots",
-                            "Directly increased property leads with bot by 50% from 20% to 30%",
-                            "Increased User responses for visit scheduling bot by 30% from 23% to 30%",
-                            "Owned QA/KPI automation and led all new bot development initiatives",
+                            "Conducted in-depth user research by analysing 1500+ bot call recordings to map friction points in the lead activation journey.",
+                            "Directly lifted property activation for old leads with bot by 50% from 20% to 30%.",
+                            "Increased user responses for the visit scheduling bot by 30% from 23% to 30%.",
+                            "Owned development, QA, and KPI automation across 10+ bots; led all new bot initiatives end-to-end.",
                             "Redesigned the 'Notes' feature on the primary property card, creating an improved user journey"
                         ]
                     },
@@ -431,7 +670,8 @@
                         date: "Feb 2025 - March 2025",
                         location: "Bangalore, Remote",
                         details: [
-                            "Designed PRDs including newspaper notice automation and legal case management, collaborating with vendors for integration",
+                            "Owned PRD lifecycle for newspaper notice automation and legal case management.",
+                            "Handled vendor identification and negotiation to final integration spec.",
                             "Reported directly to the founder (CA AIR 2, ex-BCG Consultant) on product and growth initiatives"
                         ]
                     },
@@ -441,8 +681,7 @@
                         date: "Jan 2025 - March 2025",
                         location: "Remote",
                         details: [
-                            "Connect startups with VCs, driving strategic investments",
-                            "Evaluated startups, conduct market research, and provide insights to VCs"
+                            "Evaluated early-stage startups across sectors, conducting market sizing and competitive research to surface investment opportunities for VC partners."
                         ]
                     },
                     {
@@ -451,10 +690,10 @@
                         date: "May 2024 - June 2024",
                         location: "Bangalore, On Site",
                         details: [
-                            "Revamped dashboards, integrating funnel analysis, user paths, and UTM tracking",
-                            "Authored PRDs to align product strategy and created a 300-event tracking document",
-                            "Acknowledged with a LinkedIn mention from the CEO",
-                            "Built a durable and scalable analytics framework, confirmed by the co-founder to be in use over a year later"
+                            "Revamped dashboards, integrating trend analysis, user paths, and UTM tracking.",
+                            "Authored PRDs to align product strategy and created a 300-event tracking document.",
+                            "Acknowledged with a LinkedIn mention from the CEO.",
+                            "Built a durable and scalable analytics framework, confirmed by the co-founder to be in use over a year later."
                         ]
                     },
                     {
@@ -463,8 +702,8 @@
                         date: "Jan 2024 - Mar 2024",
                         location: "Vellore, TN",
                         details: [
-                            "Developed a platform connecting students with freelancing opportunities",
-                            "Won Investor's Choice Award at iee-TITE conference, attracting VC interest"
+                            "Developed a platform connecting students with freelancing opportunities.",
+                            "Won Investor's Choice Award at ice-TITE conference, attracting VC interest."
                         ]
                     }
                 ]
@@ -473,22 +712,50 @@
                 title: "My Projects",
                 items: [
                     {
+                        name: "3D Portfolio",
+                        description: "Interactive gamified portfolio experience.",
+                        stack: "React, Three.js",
+                        links: [
+                            { label: "Live", url: "https://3-d-portfolio-drab-nine.vercel.app/" },
+                            { label: "GitHub", url: "https://github.com/Kushagra-rohatgi/3D_Portfolio" }
+                        ]
+                    },
+                    {
+                        name: "CredSense AI",
+                        description: "AI credit intelligence platform.",
+                        stack: "FastAPI, Next.js",
+                        links: [
+                            { label: "GitHub", url: "https://github.com/Kushagra-rohatgi/CredSense-AI" }
+                        ]
+                    },
+                    {
+                        name: "Cloud Vulnerability Analyser",
+                        description: "AWS risk scanner with AI fixes.",
+                        stack: "FastAPI, Boto3, Python, NetworkX",
+                        links: [
+                            { label: "GitHub", url: "https://github.com/Kushagra-rohatgi/CloudVulnerabilityAnalyser" }
+                        ]
+                    },
+                    {
                         name: "CaseForge",
-                        description: "Built a case study generator using NLP on B-school docs.",
-                        stack: "Python, OpenAI APIs, MySQL",
-                        link: "#"
+                        description: "NLP case study generator.",
+                        stack: "Python, Gemini API",
+                        links: [
+                            { label: "GitHub", url: "https://github.com/LoL-Gang/CaseForge" }
+                        ]
                     },
                     {
                         name: "Dreamcatcher",
-                        description: "Visualized dreams using Stable Diffusion and Gemini API.",
-                        stack: "Stable Diffusion, Python",
-                        link: "#"
+                        description: "Dream visualization using GenAI.",
+                        stack: "Python, Stable Diffusion",
+                        links: [
+                            { label: "GitHub", url: "https://github.com/Kushagra-rohatgi/Dreamcatcher" }
+                        ]
                     },
                     {
                         name: "Sanatan Dharma App",
-                        description: "Launched an app digitizing spiritual experiences.",
-                        stack: "Figma, Flutter, Firebase",
-                        link: "#"
+                        description: "Spiritual content app.",
+                        stack: "Flutter, Firebase"
                     }
                 ]
             },
@@ -499,15 +766,14 @@
                     { name: "Machine Learning", items: ["NLP", "Generative AI", "Embeddings"] },
                     { name: "Product Analytics", items: ["Mixpanel", "PRDs", "Roadmapping", "Posthog"] },
                     { name: "UI/UX", items: ["Figma", "UX Research"] },
-                    { name: "Cloud", items: ["AWS", "GCP", "Azure"] }
+                    { name: "Cloud", items: ["AWS", "GCP", "Azure"] },
+                    { name: "Certifications", items: ["Oracle Generative AI Professional", "PAC (Product School)", "PSC (Product School)", "Product Analytics"] }
                 ]
             },
             education: {
                 title: "Education",
                 items: [
-                    { school: "VIT, Vellore", degree: "B.Tech in CSE (CGPA: 8.52)", date: "Sep 2022 - Current (2026)", location: "Vellore, TN" },
-                    { school: "Jain International School", degree: "Grade 12 Science: 90.2/100", date: "Feb 2020 - April 2021", location: "Nagpur, MH" },
-                    { school: "Kendriya Vidyalaya", degree: "Grade 10: 93/100", date: "Feb 2019 - March 2020", location: "Bhilai, CG" }
+                    { school: "VIT, Vellore", degree: "B.Tech in CSE (CGPA: 8.55)", date: "Sep 2022 - Current (2026)", location: "Vellore, TN" }
                 ]
             },
             contact: {
@@ -1678,108 +1944,103 @@
                 pitStop.clickMeIndicator.material.map.needsUpdate = true;
             });
         });
-        // Background Music Controls
         const backgroundMusic = document.getElementById('background-music');
         const musicToggle = document.getElementById('music-toggle');
         const volumeSlider = document.getElementById('volume-slider');
         const volumeDisplay = document.getElementById('volume-display');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const carCustomizer = document.getElementById('car-customizer');
+        const progressHud = document.getElementById('progress-hud');
         const startHint = document.getElementById('start-hint');
         const cinemaCta = document.getElementById('cinema-cta');
-        let isPlaying = true; // Start as playing
-        let engineAudioContext = null;
-        let engineOscillator = null;
-        let engineGain = null;
+        let isPlaying = true;
+        let introComplete = false;
 
         function initEngineAudio() {
-            if (engineAudioContext) return;
-            const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContextCtor) return;
-            engineAudioContext = new AudioContextCtor();
-            engineOscillator = engineAudioContext.createOscillator();
-            engineGain = engineAudioContext.createGain();
-            engineOscillator.type = 'sawtooth';
-            engineOscillator.frequency.value = 40;
-            engineGain.gain.value = 0.0001;
-            engineOscillator.connect(engineGain);
-            engineGain.connect(engineAudioContext.destination);
-            engineOscillator.start();
+            return;
         }
 
         function updateEngineAudio(currentVelocity) {
-            if (!engineAudioContext || !engineOscillator || !engineGain) return;
-            const speed = Math.abs(currentVelocity);
-            const targetFrequency = 38 + speed * 190;
-            const targetGain = Math.min(speed * 0.018, 0.028);
-            engineOscillator.frequency.setTargetAtTime(targetFrequency, engineAudioContext.currentTime, 0.08);
-            engineGain.gain.setTargetAtTime(targetGain, engineAudioContext.currentTime, 0.12);
+            return;
         }
 
         function fadeStartHint() {
-            startHint.classList.add('hidden');
+            return;
         }
 
-        // Set initial volume to 50%
+        function revealDrivingHud() {
+            carCustomizer.classList.remove('intro-hidden');
+            progressHud.classList.remove('intro-hidden');
+        }
+
+        function hideWelcome(force = false) {
+            if (!force && !introComplete) return;
+            if (welcomeScreen.style.display !== 'none') {
+                welcomeScreen.style.display = 'none';
+                revealDrivingHud();
+            }
+        }
+
+        function skipIntro() {
+            introComplete = true;
+            hideWelcome(true);
+        }
+
+        function syncMusicUi(playing) {
+            isPlaying = playing;
+            musicToggle.textContent = playing ? 'Pause' : 'Play';
+            musicToggle.style.background = playing ? '#ff6b6b' : '#4CAF50';
+        }
+
+        function tryPlayBackgroundMusic(reset = false) {
+            if (reset) {
+                backgroundMusic.currentTime = 0;
+            }
+            return backgroundMusic.play().then(() => {
+                syncMusicUi(true);
+            }).catch(() => {
+                syncMusicUi(false);
+            });
+        }
+
         backgroundMusic.volume = 0.5;
+        syncMusicUi(false);
+        tryPlayBackgroundMusic();
 
-        // Try to auto-play immediately
-        backgroundMusic.play().then(() => {
-            musicToggle.textContent = 'Pause';
-            musicToggle.style.background = '#ff6b6b';
-            isPlaying = true;
-        }).catch(err => {
-            console.log('Autoplay blocked, will retry on user interaction');
-            isPlaying = false;
-        });
-
-        // Also try on page load
         window.addEventListener('load', () => {
             if (!isPlaying) {
-                backgroundMusic.play().then(() => {
-                    musicToggle.textContent = 'Pause';
-                    musicToggle.style.background = '#ff6b6b';
-                    isPlaying = true;
-                }).catch(err => {
-                    console.log('Autoplay blocked, user must click Play');
-                });
+                tryPlayBackgroundMusic();
             }
+        });
+
+        ['pointerdown', 'keydown', 'touchstart'].forEach((eventName) => {
+            window.addEventListener(eventName, () => {
+                if (!isPlaying) {
+                    tryPlayBackgroundMusic();
+                }
+            }, { once: true, passive: true });
         });
 
         // Also try to play when welcome screen is clicked
-        document.getElementById('welcome-screen').addEventListener('click', () => {
-            initEngineAudio();
-            // Always restart music from beginning when starting
-            backgroundMusic.currentTime = 0;
-            backgroundMusic.play().then(() => {
-                musicToggle.textContent = 'Pause';
-                musicToggle.style.background = '#ff6b6b';
-                isPlaying = true;
-            }).catch(err => {
-                console.log('Audio play failed:', err);
-            });
-        });
-
-        // Play/Pause toggle
-        musicToggle.addEventListener('click', () => {
-            if (isPlaying) {
-                backgroundMusic.pause();
-                musicToggle.textContent = 'Play';
-                musicToggle.style.background = '#4CAF50';
-                isPlaying = false;
-            } else {
-                backgroundMusic.play().catch(err => {
-                    console.log('Audio play failed:', err);
-                });
-                musicToggle.textContent = 'Pause';
-                musicToggle.style.background = '#ff6b6b';
-                isPlaying = true;
+        welcomeScreen.addEventListener('click', () => {
+            if (!isPlaying) {
+                tryPlayBackgroundMusic(true);
             }
         });
 
-        // Volume control
+        musicToggle.addEventListener('click', () => {
+            if (isPlaying) {
+                backgroundMusic.pause();
+                syncMusicUi(false);
+            } else {
+                tryPlayBackgroundMusic();
+            }
+        });
+
         volumeSlider.addEventListener('input', (e) => {
             const volume = e.target.value / 100;
             backgroundMusic.volume = volume;
-            volumeDisplay.textContent = e.target.value + '%';
+            volumeDisplay.textContent = `${e.target.value}%`;
         });
 
         // ========================================
@@ -2526,6 +2787,10 @@
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                 e.preventDefault();
             }
+
+            if (!introComplete) {
+                skipIntro();
+            }
             
             if (e.key === 'ArrowUp') keys.up = true;
             if (e.key === 'ArrowDown') keys.down = true;
@@ -2533,23 +2798,6 @@
             if (e.key === 'ArrowRight') keys.right = true;
             initEngineAudio();
             fadeStartHint();
-            
-            // Hide welcome screen on first key press and start music
-            if (document.getElementById('welcome-screen').style.display !== 'none') {
-                document.getElementById('welcome-screen').style.display = 'none';
-                
-                // Start music from beginning
-                if (!isPlaying) {
-                    backgroundMusic.currentTime = 0;
-                    backgroundMusic.play().then(() => {
-                        musicToggle.textContent = 'Pause';
-                        musicToggle.style.background = '#ff6b6b';
-                        isPlaying = true;
-                    }).catch(err => {
-                        console.log('Audio play failed:', err);
-                    });
-                }
-            }
         });
 
         window.addEventListener('keyup', (e) => {
@@ -2565,32 +2813,14 @@
         const btnLeft = document.getElementById('btn-left');
         const btnRight = document.getElementById('btn-right');
 
-        btnGas.addEventListener('touchstart', (e) => { e.preventDefault(); initEngineAudio(); keys.up = true; hideWelcome(); fadeStartHint(); });
+        btnGas.addEventListener('touchstart', (e) => { e.preventDefault(); if (!introComplete) skipIntro(); initEngineAudio(); keys.up = true; hideWelcome(); fadeStartHint(); });
         btnGas.addEventListener('touchend', (e) => { e.preventDefault(); keys.up = false; });
-        btnBrake.addEventListener('touchstart', (e) => { e.preventDefault(); initEngineAudio(); keys.down = true; hideWelcome(); fadeStartHint(); });
+        btnBrake.addEventListener('touchstart', (e) => { e.preventDefault(); if (!introComplete) skipIntro(); initEngineAudio(); keys.down = true; hideWelcome(); fadeStartHint(); });
         btnBrake.addEventListener('touchend', (e) => { e.preventDefault(); keys.down = false; });
-        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); initEngineAudio(); keys.left = true; hideWelcome(); fadeStartHint(); });
+        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); if (!introComplete) skipIntro(); initEngineAudio(); keys.left = true; hideWelcome(); fadeStartHint(); });
         btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); keys.left = false; });
-        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); initEngineAudio(); keys.right = true; hideWelcome(); fadeStartHint(); });
+        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); if (!introComplete) skipIntro(); initEngineAudio(); keys.right = true; hideWelcome(); fadeStartHint(); });
         btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keys.right = false; });
-
-        function hideWelcome() {
-            if (document.getElementById('welcome-screen').style.display !== 'none') {
-                document.getElementById('welcome-screen').style.display = 'none';
-                
-                // Start music from beginning
-                if (!isPlaying) {
-                    backgroundMusic.currentTime = 0;
-                    backgroundMusic.play().then(() => {
-                        musicToggle.textContent = 'Pause';
-                        musicToggle.style.background = '#ff6b6b';
-                        isPlaying = true;
-                    }).catch(err => {
-                        console.log('Audio play failed:', err);
-                    });
-                }
-            }
-        }
 
         document.getElementById('jump-cinema').addEventListener('click', () => {
             car.position.set(0, 0, cinemaZ + 26);
@@ -2650,8 +2880,8 @@
         // Download resume
         function downloadResume() {
             const link = document.createElement('a');
-            link.href = 'reference/Resume_Kushagra_Rohatgi (3).pdf';
-            link.download = 'Resume_Kushagra_Rohatgi.pdf';
+            link.href = 'reference/Resume_KushagraRohatgi.pdf';
+            link.download = 'Resume_KushagraRohatgi.pdf';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -2719,6 +2949,15 @@
                             <div class="bg-gradient-to-r from-orange-100 to-pink-100 px-4 py-2 rounded-lg inline-block">
                                 <span class="text-sm font-semibold text-gray-800">🛠️ ${item.stack}</span>
                             </div>
+                            ${item.links?.length ? `
+                                <div class="mt-4 flex flex-wrap gap-3">
+                                    ${item.links.map(link => `
+                                        <a href="${link.url}" target="_blank" rel="noreferrer" class="px-4 py-2 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+                                            ${link.label}
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                 });
@@ -2823,15 +3062,6 @@
                 bl.glowLight.intensity = 0;
             });
             
-            // Always restart music from beginning
-            backgroundMusic.currentTime = 0;
-            backgroundMusic.play().then(() => {
-                musicToggle.textContent = 'Pause';
-                musicToggle.style.background = '#ff6b6b';
-                isPlaying = true;
-            }).catch(err => {
-                console.log('Music play failed:', err);
-            });
         });
 
         function openCinemaModal() {
@@ -2845,7 +3075,7 @@
             
             let html = `
                 <h2 class="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500">🎬 Behind The Scenes</h2>
-                <p class="text-lg text-gray-600 mb-6 italic">A visual journey through my career highlights!</p>
+                <p class="text-lg text-gray-600 mb-6 italic">A visual walkthrough of my work, projects, and journey so far.</p>
                 <div class="space-y-4">
             `;
             
