@@ -485,6 +485,355 @@
                 border-radius: 26px;
             }
         }
+        .mobile-drive-trigger,
+        .mobile-sheet-backdrop {
+            display: none;
+        }
+        @media (max-width: 767px) {
+            :root {
+                --mobile-safe-top: max(12px, env(safe-area-inset-top));
+                --mobile-safe-bottom: max(12px, env(safe-area-inset-bottom));
+            }
+            body {
+                touch-action: manipulation;
+            }
+            .welcome-screen {
+                align-items: flex-start;
+                padding: 14px 12px calc(var(--mobile-safe-bottom) + 96px);
+                overflow-y: auto;
+            }
+            .welcome-panel {
+                width: calc(100% - 4px);
+                max-width: 420px;
+                margin: 0 auto;
+                min-height: calc(100dvh - var(--mobile-safe-bottom) - 108px);
+                max-height: calc(100dvh - var(--mobile-safe-bottom) - 20px);
+                padding: 18px;
+                border-radius: 22px;
+                overflow-y: auto;
+            }
+            .welcome-title {
+                max-width: none;
+                font-size: clamp(34px, 7.6vw, 46px);
+                line-height: 0.92;
+            }
+            .welcome-role {
+                margin-top: 10px;
+                padding: 9px 13px;
+                border-radius: 999px;
+                font-size: 12px;
+            }
+            .welcome-subtitle {
+                margin-top: 10px;
+                max-width: none;
+                font-size: 14px;
+                line-height: 1.42;
+            }
+            .welcome-company-line {
+                margin-top: 14px;
+                font-size: 10px;
+            }
+            .welcome-company-list {
+                margin-top: 6px;
+                font-size: 16px;
+                line-height: 1.28;
+                max-width: none;
+            }
+            .welcome-drive {
+                margin-top: 14px;
+                padding: 12px;
+                border-radius: 16px;
+            }
+            .welcome-drive-label {
+                margin-bottom: 8px;
+                font-size: 9px;
+            }
+            .welcome-drive-label-mobile {
+                font-size: 0;
+            }
+            .welcome-drive-label-mobile::before {
+                content: "Tap to drive";
+                font-size: 9px;
+            }
+            .welcome-drive-track {
+                height: 120px;
+                border-radius: 14px;
+            }
+            .welcome-drive-track::before {
+                left: 10%;
+                right: 10%;
+                height: 3px;
+            }
+            .welcome-car {
+                width: 88px;
+                height: 42px;
+                margin-top: 36px;
+            }
+            .welcome-cta {
+                min-height: 52px;
+                margin-top: 12px;
+                padding: 0 16px;
+                border-radius: 18px;
+                font-size: 15px;
+            }
+            .welcome-cta::before {
+                content: "Tap to drive";
+                font-size: 15px;
+            }
+            .welcome-cta {
+                font-size: 0;
+            }
+            body.intro-active .start-hint {
+                display: none;
+            }
+            .progress-hud {
+                top: var(--mobile-safe-top);
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100vw - 24px);
+                max-width: 420px;
+                padding: 10px 12px;
+                border-radius: 16px;
+                background: rgba(12, 16, 28, 0.58);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                box-shadow: 0 18px 34px rgba(5, 9, 18, 0.26);
+                color: #f5f7ff;
+                backdrop-filter: blur(20px) saturate(150%);
+                -webkit-backdrop-filter: blur(20px) saturate(150%);
+            }
+            .progress-label {
+                margin-bottom: 8px;
+                font-size: 11px;
+                letter-spacing: 0.04em;
+            }
+            .progress-track {
+                height: 8px;
+                background: rgba(255, 255, 255, 0.12);
+            }
+            .progress-subtitle {
+                margin-top: 8px;
+                font-size: 12px;
+                color: rgba(233, 238, 249, 0.8);
+            }
+            .shortcut-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-top: 10px;
+            }
+            .shortcut-btn {
+                min-height: 36px;
+                padding: 8px 10px;
+                font-size: 11px;
+                border-radius: 12px;
+                color: #d7ebff;
+                background: rgba(103, 152, 255, 0.16);
+                border: 1px solid rgba(128, 176, 255, 0.18);
+                box-shadow: inset 0 1px 0 rgba(196, 222, 255, 0.12);
+            }
+            #hud-music-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+            .mobile-drive-trigger {
+                position: fixed;
+                left: 12px;
+                bottom: calc(var(--mobile-safe-bottom) + 152px);
+                transform: none;
+                z-index: 115;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 42px;
+                width: calc((100vw - 36px) / 2);
+                max-width: none;
+                padding: 0 14px;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 999px;
+                background: linear-gradient(135deg, rgba(122, 150, 255, 0.78), rgba(164, 122, 255, 0.7));
+                color: #ffffff;
+                font-size: 12px;
+                font-weight: 600;
+                backdrop-filter: blur(18px) saturate(150%);
+                -webkit-backdrop-filter: blur(18px) saturate(150%);
+                box-shadow: 0 16px 28px rgba(5, 9, 18, 0.24), 0 0 24px rgba(126, 162, 255, 0.42), 0 0 0 1px rgba(214, 226, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+                border: 1px solid rgba(220, 230, 255, 0.42);
+            }
+            #mobile-restart-trigger {
+                left: auto;
+                right: 12px;
+                bottom: calc(var(--mobile-safe-bottom) + 152px);
+                background: rgba(255, 255, 255, 0.16);
+                color: #f5f7ff;
+            }
+            .mobile-drive-trigger.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+            .mobile-sheet-backdrop {
+                position: fixed;
+                inset: 0;
+                z-index: 108;
+                display: block;
+                background: rgba(7, 10, 18, 0.34);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.22s ease-out;
+            }
+            .mobile-sheet-backdrop.open {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            #car-customizer {
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                top: auto !important;
+                width: 100% !important;
+                max-width: none !important;
+                padding: 16px 16px calc(var(--mobile-safe-bottom) + 12px) !important;
+                border-radius: 22px 22px 0 0 !important;
+                background: rgba(245, 247, 255, 0.92) !important;
+                backdrop-filter: blur(24px) saturate(155%) !important;
+                -webkit-backdrop-filter: blur(24px) saturate(155%) !important;
+                box-shadow: 0 -20px 48px rgba(4, 8, 18, 0.24) !important;
+                transform: translateY(calc(100% + 12px));
+                transition: transform 0.24s ease-out, opacity 0.24s ease-out !important;
+                z-index: 112 !important;
+            }
+            #car-customizer::before {
+                content: "";
+                display: block;
+                width: 44px;
+                height: 5px;
+                margin: 0 auto 12px;
+                border-radius: 999px;
+                background: rgba(34, 49, 73, 0.18);
+            }
+            #car-customizer.mobile-open {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translateY(0);
+            }
+            #car-customizer > div:first-child {
+                margin-bottom: 12px !important;
+                font-size: 18px;
+            }
+            .start-hint {
+                bottom: calc(var(--mobile-safe-bottom) + 128px);
+                max-width: calc(100vw - 48px);
+                padding: 10px 14px;
+                background: rgba(12, 16, 28, 0.72);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                color: #f7f8fc;
+                box-shadow: 0 16px 28px rgba(5, 9, 18, 0.24);
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+                text-align: center;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            body.intro-active .start-hint {
+                bottom: calc(var(--mobile-safe-bottom) + 128px);
+            }
+            .restart-btn {
+                top: calc(var(--mobile-safe-top) + 86px);
+                right: 12px;
+                bottom: auto;
+                min-height: 40px;
+                padding: 0 14px;
+                border-radius: 999px;
+                font-size: 12px;
+            }
+            #mobile-controls {
+                left: 50%;
+                right: auto;
+                bottom: var(--mobile-safe-bottom);
+                transform: translateX(-50%);
+                width: calc(100vw - 24px);
+                max-width: 420px;
+                padding: 10px;
+                justify-content: initial !important;
+                border-radius: 24px;
+                background: rgba(8, 12, 24, 0.68);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                box-shadow: 0 24px 38px rgba(3, 6, 16, 0.32);
+            }
+            #mobile-controls > div {
+                display: contents !important;
+            }
+            #mobile-controls {
+                display: grid !important;
+                grid-template-columns: repeat(6, minmax(0, 1fr));
+                gap: 10px;
+            }
+            .touch-btn {
+                width: 100% !important;
+                height: 56px !important;
+                min-height: 56px;
+                border-radius: 18px !important;
+                font-size: 16px !important;
+                font-weight: 700;
+                color: #f7f8fc;
+                background: rgba(255, 255, 255, 0.12);
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 24px rgba(5, 10, 20, 0.22);
+            }
+            #btn-left,
+            #btn-right {
+                grid-column: span 3;
+            }
+            #btn-brake,
+            #btn-reverse,
+            #btn-gas {
+                grid-column: span 2;
+            }
+            #btn-gas {
+                background: linear-gradient(135deg, #ff8f68, #ff5f87);
+                box-shadow: 0 16px 26px rgba(255, 103, 128, 0.34);
+            }
+            #btn-brake,
+            #btn-reverse {
+                background: rgba(255, 255, 255, 0.18);
+            }
+            .touch-btn:active,
+            .touch-btn.is-pressed {
+                transform: scale(0.98);
+            }
+            .cta-overlay {
+                bottom: calc(var(--mobile-safe-bottom) + 124px);
+                width: calc(100vw - 24px);
+                padding: 14px;
+                border-radius: 20px;
+            }
+            .cta-title {
+                font-size: 18px;
+            }
+            .cta-copy {
+                font-size: 14px;
+            }
+            .cta-actions {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            .modal-backdrop {
+                padding: 0;
+                align-items: flex-end;
+            }
+            #modal-container > div {
+                width: 100%;
+                max-height: 86vh;
+                border-radius: 24px 24px 0 0;
+            }
+        }
+        @media (min-width: 768px) {
+            #hud-music-toggle {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-b from-orange-100 to-purple-200 intro-active">
@@ -502,7 +851,7 @@
             <div class="welcome-drive">
                 <div class="welcome-drive-label">
                     <span>Intro Drive</span>
-                    <span>Press Any Key To Begin</span>
+                    <span class="welcome-drive-label-mobile">Press Any Key To Begin</span>
                 </div>
                 <div class="welcome-drive-track">
                     <div class="welcome-car">
@@ -513,7 +862,7 @@
                     </div>
                 </div>
             </div>
-            <div class="welcome-cta">Press any key to start the drive.</div>
+            <button id="welcome-cta" class="welcome-cta" type="button">Press any key to start the drive.</button>
         </div>
     </div>
 
@@ -528,6 +877,14 @@
     <div id="click-indicator" class="click-indicator" style="display: none;">
         👆 CLICK THE BILLBOARD!
     </div>
+
+    <button id="mobile-drive-trigger" class="mobile-drive-trigger intro-hidden" type="button">
+        Click to Customize
+    </button>
+    <button id="mobile-restart-trigger" class="mobile-drive-trigger intro-hidden hidden" type="button">
+        Start Again
+    </button>
+    <div id="mobile-sheet-backdrop" class="mobile-sheet-backdrop"></div>
     
     <!-- Car Customizer -->
     <div id="car-customizer" class="hud-panel intro-hidden" style="position: fixed; bottom: 80px; right: 20px; padding: 15px; border-radius: 20px; z-index: 100; font-size: 14px; max-width: 220px;">
@@ -590,6 +947,7 @@
         </div>
         <div id="progress-subtitle" class="progress-subtitle">Start the drive</div>
         <div class="shortcut-row">
+            <button id="hud-music-toggle" class="shortcut-btn" type="button">Pause Audio</button>
             <button id="jump-cinema" class="shortcut-btn" type="button">Jump To End</button>
         </div>
     </div>
@@ -607,12 +965,13 @@
     <!-- Mobile Touch Controls -->
     <div id="mobile-controls" class="fixed bottom-6 left-0 right-0 px-6 flex justify-between md:hidden z-40">
         <div class="flex gap-3">
-            <button id="btn-left" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold">←</button>
-            <button id="btn-right" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold">→</button>
+            <button id="btn-left" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold">LEFT</button>
+            <button id="btn-right" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold">RIGHT</button>
         </div>
         <div class="flex gap-3">
+            <button id="btn-reverse" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold">REVERSE</button>
             <button id="btn-brake" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold">BRAKE</button>
-            <button id="btn-gas" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold">GAS</button>
+            <button id="btn-gas" class="touch-btn w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold">DRIVE</button>
         </div>
     </div>
 
@@ -1949,15 +2308,23 @@
         });
         const backgroundMusic = document.getElementById('background-music');
         const musicToggle = document.getElementById('music-toggle');
+        const hudMusicToggle = document.getElementById('hud-music-toggle');
         const volumeSlider = document.getElementById('volume-slider');
         const volumeDisplay = document.getElementById('volume-display');
         const welcomeScreen = document.getElementById('welcome-screen');
+        const welcomeCta = document.getElementById('welcome-cta');
         const carCustomizer = document.getElementById('car-customizer');
         const progressHud = document.getElementById('progress-hud');
         const startHint = document.getElementById('start-hint');
         const cinemaCta = document.getElementById('cinema-cta');
+        const mobileDriveTrigger = document.getElementById('mobile-drive-trigger');
+        const mobileRestartTrigger = document.getElementById('mobile-restart-trigger');
+        const mobileSheetBackdrop = document.getElementById('mobile-sheet-backdrop');
         let isPlaying = true;
         let introComplete = false;
+        let isMobileViewport = window.innerWidth < 768;
+        let isMobileSheetOpen = false;
+        let startHintTimer = null;
 
         function initEngineAudio() {
             return;
@@ -1968,12 +2335,58 @@
         }
 
         function fadeStartHint() {
-            return;
+            startHint.classList.add('hidden');
+            if (startHintTimer) {
+                clearTimeout(startHintTimer);
+                startHintTimer = null;
+            }
         }
 
         function revealDrivingHud() {
             carCustomizer.classList.remove('intro-hidden');
             progressHud.classList.remove('intro-hidden');
+            mobileDriveTrigger.classList.remove('intro-hidden');
+            mobileRestartTrigger.classList.remove('intro-hidden');
+        }
+
+        function updateMobileMode() {
+            isMobileViewport = window.innerWidth < 768;
+            if (!isMobileViewport) {
+                closeMobileSheet(true);
+                mobileDriveTrigger.classList.add('hidden');
+                mobileRestartTrigger.classList.add('hidden');
+            }
+        }
+
+        function showStartHint(message = 'Tap Drive to begin') {
+            startHint.textContent = message;
+            startHint.classList.remove('hidden');
+            if (startHintTimer) clearTimeout(startHintTimer);
+            startHintTimer = setTimeout(() => {
+                startHint.classList.add('hidden');
+            }, 3000);
+        }
+
+        function openMobileSheet() {
+            if (!isMobileViewport) return;
+            isMobileSheetOpen = true;
+            carCustomizer.classList.add('mobile-open');
+            mobileSheetBackdrop.classList.add('open');
+            mobileDriveTrigger.classList.add('hidden');
+            mobileRestartTrigger.classList.add('hidden');
+        }
+
+        function closeMobileSheet(force = false) {
+            if (!isMobileViewport && !force) return;
+            isMobileSheetOpen = false;
+            carCustomizer.classList.remove('mobile-open');
+            mobileSheetBackdrop.classList.remove('open');
+            if (introComplete && isMobileViewport) {
+                mobileDriveTrigger.classList.remove('hidden');
+                if (car.position.z < 9) {
+                    mobileRestartTrigger.classList.remove('hidden');
+                }
+            }
         }
 
         function hideWelcome(force = false) {
@@ -1982,6 +2395,9 @@
                 welcomeScreen.style.display = 'none';
                 document.body.classList.remove('intro-active');
                 revealDrivingHud();
+                if (isMobileViewport) {
+                    showStartHint('Tap Drive to begin');
+                }
             }
         }
 
@@ -1994,6 +2410,7 @@
             isPlaying = playing;
             musicToggle.textContent = playing ? 'Pause' : 'Play';
             musicToggle.style.background = playing ? '#ff6b6b' : '#4CAF50';
+            hudMusicToggle.textContent = playing ? '🔊 Pause Audio' : '🔇 Play Audio';
         }
 
         function tryPlayBackgroundMusic(reset = false) {
@@ -2031,8 +2448,32 @@
                 tryPlayBackgroundMusic(true);
             }
         });
+        welcomeCta.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (!introComplete) {
+                skipIntro();
+            } else {
+                hideWelcome(true);
+            }
+            if (!isPlaying) {
+                tryPlayBackgroundMusic(true);
+            }
+        });
+        mobileDriveTrigger.addEventListener('click', openMobileSheet);
+        mobileRestartTrigger.addEventListener('click', () => {
+            document.getElementById('restart-btn').click();
+        });
+        mobileSheetBackdrop.addEventListener('click', () => closeMobileSheet());
 
         musicToggle.addEventListener('click', () => {
+            if (isPlaying) {
+                backgroundMusic.pause();
+                syncMusicUi(false);
+            } else {
+                tryPlayBackgroundMusic();
+            }
+        });
+        hudMusicToggle.addEventListener('click', () => {
             if (isPlaying) {
                 backgroundMusic.pause();
                 syncMusicUi(false);
@@ -2781,6 +3222,7 @@
         const keys = {
             up: false,
             down: false,
+            reverse: false,
             left: false,
             right: false
         };
@@ -2797,16 +3239,17 @@
             }
             
             if (e.key === 'ArrowUp') keys.up = true;
-            if (e.key === 'ArrowDown') keys.down = true;
+            if (e.key === 'ArrowDown') keys.reverse = true;
             if (e.key === 'ArrowLeft') keys.left = true;
             if (e.key === 'ArrowRight') keys.right = true;
             initEngineAudio();
             fadeStartHint();
+            closeMobileSheet();
         });
 
         window.addEventListener('keyup', (e) => {
             if (e.key === 'ArrowUp') keys.up = false;
-            if (e.key === 'ArrowDown') keys.down = false;
+            if (e.key === 'ArrowDown') keys.reverse = false;
             if (e.key === 'ArrowLeft') keys.left = false;
             if (e.key === 'ArrowRight') keys.right = false;
         });
@@ -2814,23 +3257,51 @@
         // Mobile touch controls
         const btnGas = document.getElementById('btn-gas');
         const btnBrake = document.getElementById('btn-brake');
+        const btnReverse = document.getElementById('btn-reverse');
         const btnLeft = document.getElementById('btn-left');
         const btnRight = document.getElementById('btn-right');
 
-        btnGas.addEventListener('touchstart', (e) => { e.preventDefault(); if (!introComplete) skipIntro(); initEngineAudio(); keys.up = true; hideWelcome(); fadeStartHint(); });
-        btnGas.addEventListener('touchend', (e) => { e.preventDefault(); keys.up = false; });
-        btnBrake.addEventListener('touchstart', (e) => { e.preventDefault(); if (!introComplete) skipIntro(); initEngineAudio(); keys.down = true; hideWelcome(); fadeStartHint(); });
-        btnBrake.addEventListener('touchend', (e) => { e.preventDefault(); keys.down = false; });
-        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); if (!introComplete) skipIntro(); initEngineAudio(); keys.left = true; hideWelcome(); fadeStartHint(); });
-        btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); keys.left = false; });
-        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); if (!introComplete) skipIntro(); initEngineAudio(); keys.right = true; hideWelcome(); fadeStartHint(); });
-        btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keys.right = false; });
+        function bindTouchButton(button, key) {
+            const press = (e) => {
+                e.preventDefault();
+                if (!introComplete) skipIntro();
+                initEngineAudio();
+                if (key === 'up') {
+                    keys.reverse = false;
+                } else if (key === 'reverse') {
+                    keys.up = false;
+                } else if (key === 'down') {
+                    keys.up = false;
+                    keys.reverse = false;
+                }
+                keys[key] = true;
+                hideWelcome();
+                fadeStartHint();
+                closeMobileSheet();
+                button.classList.add('is-pressed');
+            };
+            const release = (e) => {
+                if (e) e.preventDefault();
+                keys[key] = false;
+                button.classList.remove('is-pressed');
+            };
+            button.addEventListener('touchstart', press, { passive: false });
+            button.addEventListener('touchend', release, { passive: false });
+            button.addEventListener('touchcancel', release, { passive: false });
+        }
+
+        bindTouchButton(btnGas, 'up');
+        bindTouchButton(btnBrake, 'down');
+        bindTouchButton(btnReverse, 'reverse');
+        bindTouchButton(btnLeft, 'left');
+        bindTouchButton(btnRight, 'right');
 
         document.getElementById('jump-cinema').addEventListener('click', () => {
             car.position.set(0, 0, cinemaZ + 26);
             velocity = 0;
             steering = 0;
             fadeStartHint();
+            closeMobileSheet();
         });
 
         // ========================================
@@ -2901,6 +3372,7 @@
         function openModal(section) {
             isModalOpen = true;
             document.getElementById('click-indicator').style.display = 'none';
+            closeMobileSheet();
             const modalContainer = document.getElementById('modal-container');
             const modalContent = document.getElementById('modal-content');
             
@@ -3059,6 +3531,8 @@
             document.getElementById('restart-btn').style.display = 'none';
             cinemaCta.classList.remove('visible');
             startHint.classList.remove('hidden');
+            closeMobileSheet();
+            mobileRestartTrigger.classList.add('hidden');
             
             // Turn off all billboard lights
             billboardLights.forEach(bl => {
@@ -3071,6 +3545,7 @@
         function openCinemaModal() {
             isModalOpen = true;
             document.getElementById('click-indicator').style.display = 'none';
+            closeMobileSheet();
             const modalContainer = document.getElementById('modal-container');
             const modalContent = document.getElementById('modal-content');
             
@@ -3155,8 +3630,13 @@
                 // Apply acceleration/braking with better control
                 if (keys.up) {
                     velocity = Math.min(velocity + acceleration * driveSpeedMultiplier, maxSpeed * driveSpeedMultiplier);
-                } else if (keys.down) {
+                } else if (keys.reverse) {
                     velocity = Math.max(velocity - braking * driveSpeedMultiplier, -maxSpeed * 0.4 * driveSpeedMultiplier);
+                } else if (keys.down) {
+                    velocity *= 0.82;
+                    if (Math.abs(velocity) < 0.01) {
+                        velocity = 0;
+                    }
                 } else {
                     // Natural deceleration
                     if (Math.abs(velocity) > 0.001) {
@@ -3271,7 +3751,7 @@
                 const isNight = document.getElementById('time-of-day').value === 'night';
                 leftHeadlight.material.emissiveIntensity = isNight ? 1.2 * headlightPulse : 0.7;
                 rightHeadlight.material.emissiveIntensity = leftHeadlight.material.emissiveIntensity;
-                const brakingNow = keys.down || velocity < -0.02;
+                const brakingNow = keys.down || keys.reverse || velocity < -0.02;
                 leftTaillight.material.emissiveIntensity = brakingNow ? 2.2 : 1.2;
                 rightTaillight.material.emissiveIntensity = brakingNow ? 2.2 : 1.2;
                 updateEngineAudio(velocity);
@@ -3377,6 +3857,9 @@
                 // Always show restart button after first movement
                 if (car.position.z < 9) {
                     restartBtn.style.display = 'block';
+                    if (isMobileViewport && !isMobileSheetOpen) {
+                        mobileRestartTrigger.classList.remove('hidden');
+                    }
                 }
 
                 const totalProgress = THREE.MathUtils.clamp((10 - car.position.z) / (10 - cinemaZ), 0, 1);
@@ -3421,10 +3904,12 @@
 
         // Handle window resize
         window.addEventListener('resize', () => {
+            updateMobileMode();
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+        updateMobileMode();
     </script>
 </body>
 </html>
