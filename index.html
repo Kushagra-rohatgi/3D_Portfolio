@@ -228,6 +228,18 @@
             pointer-events: auto;
             transform: translateX(-50%) translateY(0);
         }
+        #modal-container {
+            z-index: 220 !important;
+        }
+        body.modal-open #mobile-controls,
+        body.modal-open .progress-hud,
+        body.modal-open .mobile-drive-trigger,
+        body.modal-open .start-hint,
+        body.modal-open .cta-overlay,
+        body.modal-open .restart-btn {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
         .cta-title {
             font-size: 22px;
             font-weight: 800;
@@ -3371,6 +3383,7 @@
 
         function openModal(section) {
             isModalOpen = true;
+            document.body.classList.add('modal-open');
             document.getElementById('click-indicator').style.display = 'none';
             closeMobileSheet();
             const modalContainer = document.getElementById('modal-container');
@@ -3512,6 +3525,7 @@
 
         function closeModal() {
             isModalOpen = false;
+            document.body.classList.remove('modal-open');
             const modalContainer = document.getElementById('modal-container');
             modalContainer.classList.add('hidden');
             modalContainer.classList.remove('flex');
@@ -3544,6 +3558,7 @@
 
         function openCinemaModal() {
             isModalOpen = true;
+            document.body.classList.add('modal-open');
             document.getElementById('click-indicator').style.display = 'none';
             closeMobileSheet();
             const modalContainer = document.getElementById('modal-container');
